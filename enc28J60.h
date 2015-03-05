@@ -5,5 +5,5 @@
 /// Defines
 /// 
 
-void ENC28J60_init(void);
+void ENC28J60_init(uint16_t RXsize, uint16_t TXsize);
 #endif
