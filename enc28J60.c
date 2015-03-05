@@ -7,7 +7,7 @@
 #include <avr/io.h>
 #include "enc28J60.h"
 
-void ENC28J60_init(uint16_t RXsize, uint16_t TXsize)
+void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
 {
 	// Initialize the ENC28J60 for the following set up
 }
