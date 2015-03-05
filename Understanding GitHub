@@ -1,0 +1,21 @@
+1) Creating an Account and Installing Github:
+  - If you are able to read this you have already created an account
+  - Follow this Link : https://help.github.com/articles/set-up-git/ to initially set up Git on your PC
+  
+2) Forks and Pulls 
+  - Github has 2 types of collaborative methods: We are using the Fork and Pull method for this project.
+    1. Fork and Pull
+      Fork - By clickin the small "+" to the right of the repository name you can create your own fork. This
+            will allow you to add new files or add edits to existing ones. Once you have created your new file or
+            added your edits the changes will only be saved in your personal fork. 
+      Pull - Now you must submit a pull request for your changes to be added to the main repository. On the right
+             beside the file window you will see a pull request button. Once on the pull request screen at the top
+             right there is a green button named "New pull request" . Hitting this will take you to a pull creation
+             screen. At the top of the window click "Compare accross forks" . Then select your fork and the master 
+             and submit. John will then be able to see the changes and either except them or not.
+             
+             Here is a more inclusive summary of pull requests: https://help.github.com/articles/using-pull-requests/ 
+             
+  3) You can edit the files online within the Github wensite or by connecting with SSH using git. 
+        
+      
