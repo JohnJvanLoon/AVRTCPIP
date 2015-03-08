@@ -39,6 +39,7 @@ void spi_init(void)
 	spi_data.index=0;
 	spi_data.len=0;
 	spi_data.state=Idle;
+	// Initialize SPI subsystem
 }
 
 int spi_run_state(void)
@@ -50,10 +51,10 @@ int spi_run_state(void)
 		// Do nothing.
 		break;
 		case Attached:
-		//if (spi_timer timeout) spi_data.state=Idle;
+		//if (timer_check_delay(0)==0) spi_data.state=Idle; // due to time out
 		break;
 		case Send:
-		if (spi_data.index==0) spi_data.state=Complete;
+		if (spi_data.len==0) spi_data.state=Complete;
 		break;
 		case Complete:
 		// Do nothing. Helper functions only. Could have a time out here as well
@@ -87,6 +88,7 @@ uint8_t spi_request_attach(void)
 		spi_data.state=Attached;
 		ret_val=1;
 		// initialize SPI timer here.  For now it is not implemented.
+		// timer_set_delay(0,10);
 	}
 	return ret_val;
 }
@@ -128,6 +130,11 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t * data)
 	return len;
 
 }
+
+
+// need to protect returned data from being over written. Perhaps in spi_TXRX (return data in that call prior to over writing it with new data to send). Or create a function to read returned data to be called prior to writing new data to send.
+// data returned from SPI is stored in the spi_data.data buffer.
+
 
 ISR(ADC_vect)
 {
