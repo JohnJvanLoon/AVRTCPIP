@@ -3,7 +3,8 @@
  *
  * Created: 2015-03-04 10:21:36 PM
  *  Author: John van Loon
- * Contributor: Ashish Kumar
+ * Contributor: Daniel Cervin-Lawry
+ * Contributor: Mystery Coder
  */ 
 
 /**
@@ -18,6 +19,7 @@
  */
 
 #include <avr/io.h>
+
 void init(void);
 
 int main(void)
