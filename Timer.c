@@ -6,6 +6,7 @@
  *	Nathaniel Tammer
  */
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "Timer.h"
 
 /// delays are set up as 0- SPI delay.
