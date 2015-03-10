@@ -18,6 +18,7 @@
  */
 
 #include <avr/io.h>
+
 void init(void);
 
 int main(void)
