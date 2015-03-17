@@ -3,6 +3,10 @@
  *
  * Created: 2015-03-04 10:21:36 PM
  *  Author: John van Loon
+ * Contributor: Daniel Cervin-Lawry
+ * Contributor: Mystery Coder
+ * Contributor: Ashish Kumar
+ *
  */ 
 
 /**
@@ -14,9 +18,11 @@
  * required to allow a small HTTP server to run on embedded hardware.
  * The server is intended to be non-blocking and able to handle more than 1 
  * active sockets.
+ *
  */
 
 #include <avr/io.h>
+
 void init(void);
 
 int main(void)
