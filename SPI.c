@@ -71,6 +71,18 @@ int spi_run_state(void)
 /* Helper functions                                                     */
 /************************************************************************/
 
+int SPI_CheckComplete(void)
+{
+	if (spi_data.state == Complete)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 /************************************************************************//**
  *  spi_request_attach
  * \brief Requests to attach to the SPI sub system
