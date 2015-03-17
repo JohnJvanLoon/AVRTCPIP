@@ -1,3 +1,16 @@
+//*****************************************************************************
+//
+// File Name            : 'enc28j60.h'
+// Title                : Microchip ENC28J60 Ethernet Interface Driver
+// Author               :
+// Contributors         : Roy Burnison,
+// Created              : 3/xx/2015
+// Revised              : 3/17/2015
+// Version              : 0.3
+// Target MCU   : Atmel AVR series
+//
+//*****************************************************************************
+
 #ifndef ENC28J60_H
 #define ENC28J60_H
 
@@ -91,6 +104,17 @@
 #define FCEN1 1
 #define FCEN0 0
 /// ******************* Bit Register ******************** END
+
+
+//SPI Instruction Set (OPCODE)
+#define READ_CTRL_REG  0x00
+#define READ_BUFF_MEM  0x3A
+#define WRITE_CTRL_REG 0x40
+#define WRITE_BUFF_MEM 0x7A
+#define BIT_FIELD_SET  0x80
+#define BIT_FIELD_CLR  0xA0
+#define SYS_RESET_CMD  0xFF
+
 /// ******************* Definitions *********************
 
 /************************************************************************/
