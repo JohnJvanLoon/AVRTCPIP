@@ -136,7 +136,7 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t * data)
 // data returned from SPI is stored in the spi_data.data buffer.
 
 
-ISR(ADC_vect)
+ISR(SPI_STC_vect)
 {
 		spi_data.data[spi_data.index]=SPDR;
 		spi_data.index++;
