@@ -42,18 +42,6 @@ void spi_init(void)
 	// Initialize SPI subsystem
 }
 
-/* Initialization of the SPI on the enc28j60 . 
-The enc28j60 only works in 0,0 mode so there is no CPOL or CPHA set.
-Set up master, and enable the SPI interrupt. Enable SPI2X bit for fastest possible running clock.
-*/
-void enc28J60_SPI_Init(void)
-{
-	
-		SPCR = (1<<SPE)| (1<<MSTR); //Enable SPI Interrupt, Set as Master, Mode 0,0 
-		SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
-}		
-
-
 int spi_run_state(void)
 {
 	uint8_t ret_val=0;
