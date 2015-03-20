@@ -1,13 +1,58 @@
 /*
- * enc28J60.c
+ * enc28j60_StateDiagram.c
  *
- * Created: 2015-03-04 10:22:20 PM
- *  Author: John
+ * Created: 2015-03-13 7:52:58 PM
+ *  Author: Ryan Walmsley
+ *  Contributer: Norm Hoeksema
  */ 
-#include <avr/io.h>
-#include "SPI.h"
-#include "enc28J60.h"
 
+#include <avr/io.h>
+
+int enc28j60_comm(void);
+
+typedef enum  {Idle, Ready_To_Send, RW_Register, RW_Data, Complete} enc28j60_comm_states;
+	
+typedef struct
+{
+	enc28j60_comm_states state;
+}
+enc28j60_comm_struct;
+
+volatile enc28j60_comm_struct enc28j60_comm_data; // global variable for the enc28j60 communication data 
+
+
+int enc28j60_comm(void)
+{
+	uint8_t ret_val=0;
+	switch (enc28j60_comm_data.state)
+	{
+		case Idle:
+			
+			
+		break;
+		case Ready_To_Send:
+			
+			
+		break;
+		case RW_Register:
+			
+			
+		break;
+		case RW_Data:
+			
+		
+		break;
+		case Complete:
+			
+			
+		break;
+		default: // state is corrupt.
+			
+		
+		break;
+	}
+	return ret_val;	
+}
 void SPI_WAIT(void);	//creates wait function function
 void WRITE_ENC28_CTRL(uint_8 ARGUMENT, uint_8 data); //creates the registry write function 
 void MAC_Init(void); 	//creates initialization function
@@ -43,52 +88,4 @@ WRITE_ENC28_CTRL(MACON3, ((1<<PADCFG2)|(1<<PADCFG1)|(1<<PADCFG0)|(1<<TXCRCEN)|(1
 WRITE_ENC28_CTRL(MACON4, ((1<<DEFER)));
 //MABBIPG This is the back to back inter-packet gap. recommended setting is 15h for minimum 802.3 compliance
 WRITE_ENC28_CTRL(MABBIPG, ((0x15)));
-}
-/** 
- * function ENC28J60_init
- * \brief Initialization of the enc28J60
- *
- * Provides initialization functionality for the ENC28J60 chip via SPI.
- * \param[in] RXsize The size of the RX memory area to set up in the enc28j60
- * \param[in] TXsize The size of the TX memory area to set up in the enc28j60
- * \param[in] Broadcast Flag to indicate if a broadcast is received. 1- receive broadcast packets
- */
- 
-void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
-{
-	// Initialize the ENC28J60 for the following set up
-	MAC_Init();
-}
-
-
-/** 
- * function ENC28J60_config_LEDs
- * \brief Change behaviour of the enc28J60 LED outputs (on jack)
- *
- * Allows the behaviour of the LEDs to be configured.
- *
- * Flag values for LEDA and LEDB can take the values:
- *-		ENC28J60_LED_ON
- *-		ENC28J60_LED_OFF
- *-		ENC28J60_LED_LINK_TXRX
- *-		ENC28J60_LED_LINK
- *-		ENC28J60_LED_COL_ACTIVITY
- *-		ENC28J60_LED_TXRX_ACTIVITY
- *-		ENC28J60_LED_BLINK_SLOW
- *-		ENC28J60_LED_BLINK_FAST 
- *
- *
- * Stretch times are specified as 
- *- ENC28J60_TLSTRCH
- *- ENC28J60_TMSTRCH
- *- ENC28J60_TNSTRCH
- *- ENC28J60_NOSTRCH
- *
- * \param[in] ledA Flag indicating the operation of LEDA
- * \param[in] ledB Flag indicating the operation of LEDB
- * \param[in] led_stretch determines led stretch time. Upper 4 bits are for LEDA, Lower are for LEDB
- */
-void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
-{
-	
 }
