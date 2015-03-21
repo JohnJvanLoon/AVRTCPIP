@@ -8,7 +8,7 @@
 #include <avr/io.h>
 int ETH_Send_comm(void);
 
-typedef enum {Idle, Setup_TX_Packet, Write_Dest_MAC, Write_SRC_MAC, Write_Type, Send_Packet, Complete} ETH_Send_comm_States;
+typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
 	typedef struct  
 	{
 		ETH_Send_comm_States state;
@@ -26,7 +26,15 @@ int ETH_Send_comm()
 		
 		
 		break;
+		case ETH_Send_Start:
+		
+		
+		break;
 		case Setup_TX_Packet:
+		
+		
+		break;
+		case S2:
 		
 		
 		break;
@@ -34,7 +42,15 @@ int ETH_Send_comm()
 		
 		
 		break;
+		case S4:
+		
+		
+		break;
 		case Write_SRC_MAC:
+		
+		
+		break;
+		case S6:
 		
 		
 		break;
@@ -42,7 +58,15 @@ int ETH_Send_comm()
 		
 		
 		break;
+		case S8:
+		
+		
+		break;
 		case Send_Packet:
+		
+		
+		break;
+		case S10:
 		
 		
 		break;
