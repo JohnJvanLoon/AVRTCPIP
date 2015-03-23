@@ -133,7 +133,7 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t * data)
 	}
 	if (((spi_data.state==Attached)||(spi_data.state==Complete))&&(spi_data.len>0)) {
 	// start SPI
-		SPDR=spi_data.data[spi_data.index]; 
+		SPI_DATA_REG=spi_data.data[spi_data.index]; 
 		// interrupt routine records read data to the index location
 		// All that is required here is to start the conversion.
 		spi_data.state=Send;
@@ -150,11 +150,11 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t * data)
 
 ISR(SPI_STC_vect)
 {
-		spi_data.data[spi_data.index]=SPDR;
+		spi_data.data[spi_data.index]=SPI_DATA_REG;
 		spi_data.index++;
 		if (spi_data.index>=SPI_BUFFER_SIZE) spi_data.index=0;
 		spi_data.len--;
-		if (spi_data.len>0) SPDR=spi_data.data[spi_data.index];
+		if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.index];
 		else spi_data.state=Complete;	
 }
 
