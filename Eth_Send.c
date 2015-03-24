@@ -7,7 +7,7 @@
 
 #include <avr/io.h>
 int ETH_Send_comm(void);
-
+#include "Eth_Send.h"
 typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
 	typedef struct  
 	{
