@@ -55,3 +55,13 @@ void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
 {
 	
 }
+
+/** 
+ * uint8_t ENC28J60_Check_OST(void);
+ * \brief Enc28j60 function to check OST bit ready
+ *
+ *
+ *
+ *
+ *
+ */
