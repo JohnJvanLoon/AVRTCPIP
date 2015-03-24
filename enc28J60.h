@@ -4,15 +4,113 @@
 // Title                : Microchip ENC28J60 Ethernet Interface Driver
 // Author               :
 // Contributors         : Roy Burnison,
+// Contributors         : Wasay Shaikh,
 // Created              : 3/xx/2015
 // Revised              : 3/17/2015
-// Version              : 0.3
+// Version              : 0.4
 // Target MCU   : Atmel AVR series
 //
 //*****************************************************************************
 
 #ifndef ENC28J60_H
 #define ENC28J60_H
+
+//******************Control Register***************************
+
+//Universal Registers:
+#define EIE 0x1B
+#define EIR 0x1C
+#define ESTAT 0x1D
+#define ECON2 0x1E
+#define ECON1 0x1F
+
+//Bank 0 Registers: 
+#define ERDPTL 0x00
+#define ERDPTH 0x01
+#define EWRPTL 0x02
+#define EWRPTH 0x03
+#define ETXSTL 0x04
+#define ETXSTH 0x05
+#define ETXNDL 0x06
+#define ETXNDH 0x07
+#define ERXSTL 0x08
+#define ERXSTH 0x09
+#define ERXNDL 0x0A
+#define ERXNDH 0x0B
+#define ERXRDPTL 0x0C
+#define ERXRDPTH 0x0D
+#define ERXWRPTL 0x0E
+#define ERXWRPTH 0x0F
+#define EDMASTL 0x10
+#define EDMASTH 0x11
+#define EDMANDL 0x12
+#define EDMANDH 0x13
+#define EDMADSTL 0x14
+#define EDMADSTH 0x15
+#define EDMACSL 0x16
+#define EDMACSH 0x17
+
+//Bank 1 Registers: 
+#define EHT0 0x00
+#define EHT1 0x01
+#define EHT2 0x02
+#define EHT3 0x03
+#define EHT4 0x04
+#define EHT5 0x05
+#define EHT6 0x06
+#define EHT7 0x07
+#define EPMM0 0x08
+#define EPMM1 0x09
+#define EPMM2 0x0A
+#define EPMM3 0x0B
+#define EPMM4 0x0C
+#define EPMM5 0x0D
+#define EPMM6 0x0E
+#define EPMM7 0x0F
+#define EPMCSL 0x10
+#define EPMCSH 0x11
+#define EPMOL 0x14
+#define EPMOH 0x15
+#define ERXFCON 0x18
+#define EPKTCNT 0x19
+
+//Bank 2 Registers: 
+#define MACON1 0x00
+#define MACON3 0x02
+#define MACON4 0x03
+#define MABBIPG 0x04
+#define MAIPGL 0x06
+#define MAIPGH 0x07
+#define MACLCON1 0x08
+#define MACLCON2 0x09
+#define MAMXFLL 0x0A
+#define MAMXFLH 0x0B
+#define MICMD 0x12
+#define MIREGADR 0x14
+#define MIWRL 0x16
+#define MIWRH 0x17
+#define MIRDL 0x18
+#define MIRDH 0x19
+
+
+//Bank 3 Registers:
+#define MAADR5 0x00
+#define MAADR6 0x01
+#define MAADR3 0x02
+#define MAADR4 0x03
+#define MAADR1 0x04
+#define MAADR2 0x05
+#define EBSTSD 0x06
+#define EBSTCON 0x07
+#define EBSTCSL 0x08
+#define EBSTCSH 0x09
+#define MISTAT 0x0A
+#define EREVID 0x12
+#define ECOCON 0x15
+#define EFLOCON 0x17
+#define EPAUSL 0x18
+#define EPAUSH 0x19
+ 
 
 /// ******************* Bit Register ******************** Start
 /// ******************* Definitions *********************
@@ -49,7 +147,7 @@
 #define DMAST 5
 #define CSUMEN 4
 #define TXRTS 3
-#define RXEN 2
+#define ENC28J60_RXEN 2
 #define BSEL1 1
 #define BSEL0 0
 // #define ERXFCON /// ETHERNET RECEIVE FILTER CONTROL REGISTER
@@ -64,7 +162,7 @@
 // #define MACON1 /// MAC CONTROL REGISTER 1
 #define TXPAUS 3
 #define RXPAUS 2
-#define PASSAL 1
+#define PASSALL 1
 #define MARXEN 0
 // #define MACON3 /// MAC CONTROL REGISTER 3
 #define PADCFG2 7
@@ -74,7 +172,7 @@
 #define PHDREN 3
 #define HFRMEN 2
 #define FRMLNEN 1
-#define FULDPX
+#define FULDPX 0
 // #define MACON4 /// MAC CONTROL REGISTER 4
 #define DEFER 6
 #define BPEN 5
@@ -121,7 +219,7 @@
 /* Function declarations                                                */
 /************************************************************************/
 void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast);
-
 void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch);
+void enc28J60_SPI_Init(void);
 
 #endif

@@ -9,17 +9,19 @@
 #include "enc28J60.h"
 
 void SPI_WAIT(void);	//creates wait function function
-void WRITE_ENC28_CTRL(uint_8 ARGUMENT, uint_8 data); //creates the registry write function 
+void WRITE_ENC28_CTRL(uint8_t ARGUMENT, uint8_t data); //creates the registry write function 
 void MAC_Init(void); 	//creates initialization function
 
 //******a simple function that waits for the SPI to complete sending. This should only be used for initialization where blocking is permissible
 void SPI_WAIT(void)	
-{while(!(SPSR&(1<<SPIF)))}	//wait for SPI
+{
+	while(!(SPSR&(1<<SPIF)));
+}	//wait for SPI
 
 /***************WRITE_ENC28_CTRL*********************************************
 *This funciton may be used to write any registers on the ENC28J60			*
 *****************************************************************************/
-void WRITE_ENC28_CTRL(uint_8 ARGUMENT, uint_8 data)	//takes the register location argument and writes the data to it
+void WRITE_ENC28_CTRL(uint8_t ARGUMENT, uint8_t data)	//takes the register location argument and writes the data to it
 {
 SPDR = (WRITE_CTRL_REG | ARGUMENT);//takes the op code and the register location;
 SPI_WAIT();
@@ -91,4 +93,17 @@ void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
 void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
 {
 	
+}
+
+/* 
+Initialization of the SPI on the enc28j60 .
+The enc28j60 only works in 0,0 mode so there is no CPOL or CPHA set.
+Set up the atmega16 as master, and enable the SPI interrupt
+*/
+
+void enc28J60_SPI_Init(void)
+{
+	
+	SPCR = (1<<SPE)| (1<<MSTR); //Enable SPI Interrupt, Set as Master, Mode 0,0
+	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
 }
