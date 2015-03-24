@@ -195,3 +195,13 @@ ISR(SPI_STC_vect)
 
 		else spi_data.state=Complete;	
 }
+
+//unfinished helper functions created for the sake of deffinitions
+int spi_release(void)
+{
+	return 0;
+}
+int spi_clear_coms(void)
+{
+	return 0;
+}

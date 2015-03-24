@@ -6,6 +6,7 @@
  */ 
 
 #include <avr/io.h>
+#include "IP_Send.h"
 
 int IP_send_comm(void);
 
