@@ -3,9 +3,11 @@
  *
  * Created: 2015-03-23 11:29:58 AM
  * Author: Ryan Walmsley
+ * Contributor: Ashish Kumar
  */ 
 
 #include <avr/io.h>
+#include "IP_Send.h"
 
 int IP_send_comm(void);
 
@@ -84,4 +86,14 @@ int IP_send_comm(void)
 		break;
 	}
 	return ret_val;	
+}
+uint8_t IP_Send_Start (void)
+{
+	uint8_t ret_val=0;
+	if (spi_data.len==0 && IP_data.state==S0A)
+	{
+		IP_data.state=S1;
+		ret_val=1;
+	}
+	return ret_val;
 }
