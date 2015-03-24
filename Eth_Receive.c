@@ -24,94 +24,74 @@ int ETH_Receive_comm()
 	switch (ETH_Receive_comm_data.state)
 	{
 		case ENC_Attached:
-		
-		
+
 		break;
 		case Check_New_Packet:
-		
-		
+
 		break;
 		case S2:
-		
-		
+
 		break;
 		case ENC_Setup_Packet:
-		
-		
+
 		break;
 		case Read_Data:
-		
-		
+
 		break;
 		case S5:
-		
-		
+
 		break;
 		case Read_SRCMAC:
-		
-		
+
 		break;
 		case S7:
-		
-		
+
 		break;
 		case Store_MAC:
-		
-		
+
 		break;
 		case S9:
-		
-		
+
 		break;
 		case ENC_Release:
-		
-		
+
 		break;
 		case Start_IP_Receive:
-		
-		
+
 		break;
 		case Start_ARP_Receive:
-		
-		
+
 		break;
 		case Start_ICMP_Receive:
-		
-		
+
 		break;
 		case S14:
-		
-		
+
 		break;
 		case S15:
-		
-		
+
 		break;
 		case S16:
-		
-		
+
 		break;
 		case Attach_Request:
-		
-		
+
 		break;
 		case Release_Packet:
-		
-		
+
 		break;
 		case S18a:
-		
-		
+
 		break;
 		case Release_ENC:
-		
-		
+
 		break;
 		case S20:
-		
-		
+
 		break;
 		default:
+
+		break;
 		}
 		return ret_val;
 }
