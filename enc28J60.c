@@ -107,3 +107,15 @@ void enc28J60_SPI_Init(void)
 	SPCR = (1<<SPE)| (1<<MSTR); //Enable SPI Interrupt, Set as Master, Mode 0,0
 	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
 }
+
+int ENC28J60_coms_release(void)
+{
+	int temp;
+	temp=spi_clear_coms(); //attempts to clear coms
+	if (temp==1) //if coms cleared an attempt to release the spi is made
+	{
+		temp=spi_release();
+		return temp;
+	}
+	return temp;//report success or failure
+}
