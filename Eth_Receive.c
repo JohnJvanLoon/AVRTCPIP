@@ -7,18 +7,17 @@
 
 #include <avr/io.h>
 #include "Eth_Receive.h"
-int ETH_Receive_comm(void);
 
 typedef enum {ENC_Attached, Check_New_Packet, S2, ENC_Setup_Packet, Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, ENC_Release, Start_IP_Receive, Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, Attach_Request, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
-	typedef struct  
-	{
-		ETH_Receive_comm_States state;
-	}
-ETH_Receive_comm_struct;
+
+typedef struct  
+{
+	ETH_Receive_comm_States state;
+}ETH_Receive_comm_struct;
 
 volatile ETH_Receive_comm_struct ETH_Receive_comm_data;
 
-int ETH_Receive_comm()
+uint8_t ETH_Receive_comm()
 {
 	uint8_t ret_val=0;
 	switch (ETH_Receive_comm_data.state)
@@ -92,6 +91,6 @@ int ETH_Receive_comm()
 		default:
 
 		break;
-		}
-		return ret_val;
+	}
+	return ret_val;
 }

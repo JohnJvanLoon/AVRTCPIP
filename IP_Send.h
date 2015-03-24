@@ -9,8 +9,6 @@
 #ifndef IP_SEND_H_
 #define IP_SEND_H_
 
-
-
-
+uint8_t IP_send_comm(void);
 
 #endif /* IP_SEND_H_ */
