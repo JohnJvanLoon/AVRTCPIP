@@ -86,3 +86,13 @@ int IP_send_comm(void)
 	}
 	return ret_val;	
 }
+uint8_t IP_Send_Start (void)
+{
+	uint8_t ret_val=0;
+	if (spi_data.len==0 && IP_data.state==S0A)
+	{
+		IP_data.state=S1;
+		ret_val=1;
+	}
+	return ret_val;
+}
