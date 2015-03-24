@@ -1,6 +1,9 @@
 #ifndef SPI_H
 #define SPI_H
 
+
+#define SPI_DATA_REG SPDR 
+
 void spi_init(void);
 uint8_t SPI_Release (void);
 uint8_t spi_run_state(void);
