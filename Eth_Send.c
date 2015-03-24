@@ -4,6 +4,7 @@
  * Created: 2015-03-19 4:50:16 PM
  *  Author: ashish
  *  Nathaniel Tammer
+ *  Mathew Holdom
  */ 
 
 #include <avr/io.h>
@@ -69,6 +70,10 @@ int ETH_Send_comm()
 		return ret_val;
 }
 
+/************************************************************************/
+/* Helper functions                                                     */
+/************************************************************************/
+
 /**
 * ETH_Send_Release
 * \brief Changes the ethernet send state to Idle
@@ -86,4 +91,29 @@ uint8_t ETH_Send_Release(void) {
 		ret_val = 1;
 	}
 	return ret_val;
+}
+
+
+/************************************************************************//**
+*	ETH_send_Attach
+*	\brief Attaches enc28j60 to requesting sub systems
+*
+*	If the ETH_Send_Framework is in Idle state it attaches enc28j60. If
+*	it succeeds a 1 is returned and the state is changed, if it returns
+*	a 0 then it has failed and will try again.
+*
+*	returns a 0 on fail, returns a 1 on success.
+************************************************************************/
+uint8_t ETH_Send_Attach(void)
+{
+uint8_t return_val=0;
+if (ETH_Send_comm_data.state==Idle)
+{
+if (enc28j60_send_attach ==1)
+{
+ETH_Send_comm_data.state=ETH_Send_Start;
+return_val=1;
+}
+}
+return return_val;
 }
