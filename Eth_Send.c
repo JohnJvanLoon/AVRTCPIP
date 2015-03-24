@@ -2,23 +2,23 @@
  * ETH_Send.c
  *
  * Created: 2015-03-19 4:50:16 PM
- *  Author: ashish
+ *  Author: Ashish
  *  Nathaniel Tammer
  */ 
 
 #include <avr/io.h>
-int ETH_Send_comm(void);
 #include "Eth_Send.h"
+
 typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
-	typedef struct  
-	{
-		ETH_Send_comm_States state;
-	}
-ETH_Send_comm_struct;
+
+typedef struct
+{
+	ETH_Send_comm_States state;
+}ETH_Send_comm_struct;
 
 volatile ETH_Send_comm_struct ETH_Send_comm_data;
 
-int ETH_Send_comm()
+uint8_t ETH_Send_comm()
 {
 	uint8_t ret_val=0;
 	switch (ETH_Send_comm_data.state)
@@ -65,8 +65,8 @@ int ETH_Send_comm()
 		default:
 		ETH_Send_comm_data.state = Idle;
 		break;
-		}
-		return ret_val;
+	}
+	return ret_val;
 }
 
 /**

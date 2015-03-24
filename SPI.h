@@ -1,7 +1,6 @@
 #ifndef SPI_H
 #define SPI_H
 
-
 #define SPI_DATA_REG SPDR 
 
 void spi_init(void);

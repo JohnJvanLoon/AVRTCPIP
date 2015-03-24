@@ -11,6 +11,4 @@
 
 
 
-
-
 #endif /* IP_RECEIVE_H_ */
