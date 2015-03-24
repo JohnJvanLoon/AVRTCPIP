@@ -9,9 +9,11 @@
 #include <avr/interrupt.h>
 #include "Timer.h"
 
+#define NUM_DELAYS 5	//Allow for 5 delays
+
 /// delays are set up as 0- SPI delay.
-volatile uint8_t delays[5];	//currently 5 elements to allow for 5 delays to be used at once.
-uint8_t delay_index;
+volatile uint8_t delays[NUM_DELAYS];	//currently 5 elements to allow for 5 delays to be used at once.
+uint8_t delay_index;	//For counting amount of idle delays
 
 /**
 * Interrupt routine for Timer0 output compare match.
@@ -24,10 +26,13 @@ uint8_t delay_index;
 */
 ISR(TIMER0_COMP_vect)
 {
-	for (delay_index = 0;delay_index < 5;delay_index++)	//Check all 5 possible delays.
+	uint8_t idle_delays = 0;
+	for (delay_index = 0;delay_index < NUM_DELAYS;delay_index++)	//Check all 5 possible delays.
 	{
 		if (delays[delay_index] != 0) delays[delay_index]--;	//If delay is not zero decrement by 1.
+		else idle_delays++;	//If delay is zero increment idle_delays
 	}
+	if (idle_delays == NUM_DELAYS) TIMSK &=~ (1<<OCIE0);	//Disable Timer0 output compare interrupt if no delays in use.
 }
 
 /**
@@ -52,6 +57,7 @@ ISR(TIMER0_COMP_vect)
 */
 void timer_set_delay(uint8_t delay_number, uint8_t delay)
 {
+	if (!(TIMSK & (1<<OCIE0))) TIMSK |= (1<<OCIE0);	//Enable Timer0 output compare interrupt if not already enabled.
 	delays[delay_number] = delay;	//Start a delay.
 }
 
@@ -80,9 +86,9 @@ uint8_t timer_check_delay(uint8_t delay_number)
 * 
 *	Initializes Timer/Counter 0 in CTC mode with a prescaler of /64, and sets the 
 * output compare register to a value of 125 (decimal).
-* Interrupts are enabled for output compare matches, however this function does 
-* not enable global interrupts.  Please enable global interrupts somewhere else in
-* this program before use.  <avr/interupt.h> is already included in SPI.c.
+* 	Interrupts are enabled for output compare matches when the timer_set_delay function is
+* called and the interupt is disabled when there are no delays in use.  This function does not
+* enable global interrupts.  Please enable global interrupts somewhere else in this program before use.
 *	Setting the prescaler to /64 gives a clock of 125 KHz to the counter, that is a 
 * period of 0.000008 mS.  This means that 125 clock cycles take exactly 1 mS.  The 
 * value of the output compare register is therefor set to 125 in order to trigger an
@@ -93,7 +99,6 @@ uint8_t timer_check_delay(uint8_t delay_number)
 */
 void init_timer0(void)
 {
-	OCR0 = 131;	//Sets output compare value to 131 (decimal).
+	OCR0 = 125;	//Sets output compare value to 125 (decimal).
 	TCCR0 = (1<<WGM01) | (1<<CS01) | (1<<CS00);	//Set prescaler to /64 on the internal clock, start in CTC mode.
-	TIMSK = (1<<OCIE0);	//Enable Timer0 output compare interrupt.
 }
