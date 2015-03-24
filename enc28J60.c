@@ -22,11 +22,7 @@ void WRITE_ENC28_CTRL(uint8_t REGISTER, uint8_t data)	//takes the register locat
 	packet[1] = ((REGISTER && 0xE0) >> BANK_OFFSET); 
 	packet[2] = (WRITE_CTRL_REG | (0x1F && REGISTER));
 	packet[3] = data; 
-	if(spi_request_attach())
-	{
-		spi_TXRX_data(4,packet); 
-		while(!SPI_Release()){}
-	}
+	spi_TXRX_data(4,packet); 
 }
 
 /*******************MAC_Init*************************************************************************************************************
