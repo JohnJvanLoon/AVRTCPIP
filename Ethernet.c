@@ -5,6 +5,7 @@
  *  Author: John, Dennis Haase
  */ 
 #include <avr/io.h>
+#include "Ethernet.h"
 
 void ETHERNET_init(void);
 void ETHERNET_init(void);
@@ -20,6 +21,8 @@ void ETHERNET_init(void);
  #define MAC_VALS 2
  volatile ether_header_t ether_val[ETHER_VALS]; 
  volatile ether_header_t mac_val[MAC_VALS];
+
+uint8_t my_mac[6]={0x02,0,0,0,0,1}; /// should be changed to reside in FLASH.
 
 /**
 * eth_get_ip
