@@ -26,6 +26,8 @@
 #include "SPI.h"
 #include "enc28J60.h"
 #include "Ethernet.h"
+#include "Timer.h"
+
 void init(void);
 void run_states(void);
 void run_debug(void);
@@ -43,6 +45,7 @@ int main(void)
 
 void init(void)
 {
+	init_timer0();
 	spi_init_enc28j60();
 	spi_init();
 	ENC28J60_init(0,0,0);

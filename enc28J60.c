@@ -183,11 +183,10 @@ void ENC28J60_MAC_Init(void)
 void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
 {
 	// Initialize the ENC28J60 for the following set up
-	SPCR &= ~(1<<SPE)//turn off SPI interrupts for now
+	SPCR &= ~(1<<SPIE);//turn off SPI interrupts for now
 	enc28j60_soft_reset(); 
 	ENC28J60_MAC_Init();
 	enc28j60_comm_data.state=Idle;
-	SPCR |= (1<<SPE)//turn on SPI interrupts after init is done
 }
 
 
@@ -251,6 +250,8 @@ void enc28j60_soft_reset(void)
 {
 	SPDR = SYS_RESET_CMD; 
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	timer_set_delay(0,1); //use timer 0, 1ms delay. 
-	while(!timer_check_delay(0)){}//wait 1ms for the oscillator to stabilize
+	sei();
+	timer_set_delay(0,2); //use timer 0, 1ms delay. 
+	while(!timer_check_delay(0));//wait 1ms for the oscillator to stabilize
+	cli();
 }
