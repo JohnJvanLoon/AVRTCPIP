@@ -13,10 +13,14 @@
 void ENC28J60_MAC_Init(void); 	//creates initialization function
 
 typedef enum  {Idle, Ready_To_Send, S2A, S2B, S2C, S2D, S3, Complete} enc28j60_comm_states;
-	
+//defines for the flags
+// set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
+#define TWO_BYTE_REG_READ 0x80
+
 typedef struct
 {
 	enc28j60_comm_states state;
+	uint8_t flags; 
 }
 enc28j60_comm_struct;
 
@@ -49,10 +53,9 @@ uint8_t enc28j60_comm_run_state(void)
 			break;
 		case S2C: // Sending / receiving data to register
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			if (((enc28J60_buffer[2]&0xE0)==READ_CTRL_REG)&&
-				(enc28J60_buffer[1]&0x02)) { // check for extra byte to read out non ETH registers
-			spi_TXRX_data(3, &enc28J60_buffer[2]);}
-			else spi_TXRX_data(2, &enc28J60_buffer[2]); //only need 2 bytes for ETH registers
+			if (enc28j60_comm_data.flags&TWO_BYTE_REG_READ) { // check for extra byte to read out non ETH registers
+			spi_TXRX_data(2, &enc28J60_buffer[2]);}
+			else spi_TXRX_data(3, &enc28J60_buffer[2]); //need 3 bytes for PHY, MII and MAC registers
 			enc28j60_comm_data.state=S2D;
 			break;
 		case S2D:
@@ -62,7 +65,6 @@ uint8_t enc28j60_comm_run_state(void)
 			}
 			break;
 			
-			break;
 		case S3: // state used for enc28j60 data memory access
 		
 			break;
@@ -101,11 +103,12 @@ uint8_t ENC28J60_write_register(uint8_t reg, uint8_t data)	//takes the register 
 	}
 	return ret_val;
 }
+
 /** 
  * function ENC28J60_read_register
- * \brief Initialization of the enc28J60
+ * \brief reads the enc28J60 register
  *
- * This function may be used to write any registers on the ENC28J60. The state must be in Ready_To_Send or complete			
+ * This function may be used to initiate the read of any registers on the ENC28J60. The state must be in Ready_To_Send or complete			
  * This function always prepares the data as 1 bank select then 2 register.
  * \param[in] reg The register to write.
  *
@@ -121,10 +124,41 @@ uint8_t ENC28J60_read_register(uint8_t reg)	//takes the register location argume
 		enc28J60_buffer[2] = (READ_CTRL_REG|(0x1F && reg)); //mask off 3 MSB and OR with OP code
 		enc28J60_buffer[3] = 0; 
 		enc28j60_comm_data.state=S2A;
+		if (enc28J60_buffer[1]&0x02) { // banks 2 or 3
+			enc28j60_comm_data.flags&=~TWO_BYTE_REG_READ;
+		} else {
+			enc28j60_comm_data.flags=TWO_BYTE_REG_READ;
+		}
+
 		ret_val=1;
 	}
 	return ret_val;
 }
+
+/** 
+ * function ENC28J60_retrieve_register_value
+ * \brief returns the enc28J60 register value
+ *
+ * This function may be used to read the result of a register read. The value returned will only 
+ * be valid 1 time.
+ *
+ * \param[in] val pointer to a uint8_t variable to return the value in
+ *
+ * return: 0 on failure, 1 on success.
+ *
+*****************************************************************************/
+uint8_t ENC28J60_retrieve_register_value(uint8_t *val)
+{
+	uint8_t ret_val=0;
+	if (enc28j60_comm_data.flags&TWO_BYTE_REG_READ) { 
+		if (SPI_read_data( enc28J60_buffer, 2)==2) ret_val=1;
+		*val=enc28J60_buffer[1];
+	} else {
+		if (SPI_read_data( enc28J60_buffer, 3)==3) ret_val=1;
+		*val=enc28J60_buffer[2];
+	}
+	return ret_val;
+}	
 
 /***************BITSET_ENC28_CTRL*********************************************
 *This function may be used to set bits in registers on the ENC28J60			*
@@ -307,3 +341,4 @@ void enc28j60_soft_reset(void)
 	while(!timer_check_delay(0));//wait 1ms for the oscillator to stabilize
 	cli();
 }
+
