@@ -111,3 +111,17 @@ uint8_t IP_Send_Release (void)
 	return ret_val;
 
 }
+
+uint16_t IP_send_length(uint16_t length)
+{
+	uint16_t IP_len_bytes = 0;	// Reset IP_len_bytes
+	if (IP_send_comm_data.state == S2) // Check IP_send_comm_data for Send state
+	{
+		if (IP_len_bytes < length)	//If IP_len is less than length
+		{
+			IP_len_bytes = length	//Place packet length into packet for return
+		}
+		else IP_len_bytes = 0;
+	}
+	return IP_len_bytes;		//Return the number of bytes read
+}
