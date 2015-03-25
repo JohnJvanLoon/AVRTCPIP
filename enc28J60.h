@@ -236,12 +236,11 @@
 /************************************************************************/
 void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast);
 void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch);
-void enc28J60_SPI_Init(void);
 uint8_t ENC28J60_coms_release(void);
 uint8_t ENC28J60_coms_attach(void);
 void WRITE_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
-
+uint8_t enc28j60_comm_run_state(void);
 
 #endif

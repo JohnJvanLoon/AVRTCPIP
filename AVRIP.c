@@ -22,18 +22,29 @@
  */
 
 #include <avr/io.h>
+#include "SPI.h"
+#include "enc28J60.h"
 
 void init(void);
+void run_states(void);
 
 int main(void)
 {
     while(1)
     {
-        //TODO:: Please write your application code 
+        run_states(); 
     }
 }
 
 void init(void)
 {
-	
+	spi_init_enc28j60();
+	spi_init();
+	ENC28J60_init(0,0,0);
+}
+
+void run_states(void)
+{
+		spi_run_state();
+		enc28j60_comm_run_state();	
 }

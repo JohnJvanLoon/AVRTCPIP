@@ -9,8 +9,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "SPI.h"
+#include "enc28J60.h"
 #include "Timer.h"
+#include "SPI.h"
+
 
 /************************************************************************/
 /* Defines                                                              */
@@ -225,4 +227,18 @@ void spi_wait(void)
 uint8_t spi_data_len(void)
 {
 	return spi_data.len;
+}
+
+/*
+Initialization of the SPI on the enc28j60 .
+The enc28j60 only works in 0,0 mode so there is no CPOL or CPHA set.
+Set up the atmega16 as master, and enable the SPI interrupt
+*/
+
+void spi_init_enc28j60(void)
+{	
+	SPCR = (1<<SPE)| (1<<MSTR); //Enable SPI Interrupt, Set as Master, Mode 0,0
+	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
+	ENC28J60_DDR |= (1<<ENC28J60_CS) | (1<<ENC28J60_SCK) | (1<<ENC28J60_MOSI);
+	ENC28J60_PORT|=(1<<ENC28J60_CS); // start high.
 }

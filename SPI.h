@@ -4,6 +4,7 @@
 #define SPI_DATA_REG SPDR 
 
 void spi_init(void);
+void spi_init_enc28j60(void);
 uint8_t SPI_Release (void);
 uint8_t spi_run_state(void);
 uint8_t spi_request_attach(void);
