@@ -220,6 +220,14 @@
 #define SYS_RESET_CMD  0xFF
 
 /// ******************* Definitions *********************
+#define DDR_SPI DDRB
+#define PORT_SPI PORTB
+#define PIN_SPI PINB
+#define BIT_MOSI 5
+#define BIT_MISO 6 
+#define BIT_SCK 7
+#define BIT_SS 4
+
 
 /************************************************************************/
 /* Function declarations                                                */
