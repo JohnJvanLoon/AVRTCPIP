@@ -8,9 +8,9 @@
 #include <avr/interrupt.h>
 #include "SPI.h"
 #include "enc28J60.h"
+#include "Timer.h"
 
 void ENC28J60_MAC_Init(void); 	//creates initialization function
-uint8_t ENC28J60_Check_OST(void); 
 
 typedef enum  {Idle, Ready_To_Send, RW_Register, RW_Data, Complete} enc28j60_comm_states;
 	
@@ -183,9 +183,11 @@ void ENC28J60_MAC_Init(void)
 void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
 {
 	// Initialize the ENC28J60 for the following set up
+	SPCR &= ~(1<<SPE)//turn off SPI interrupts for now
+	enc28j60_soft_reset(); 
 	ENC28J60_MAC_Init();
 	enc28j60_comm_data.state=Idle;
-	ENC28J60_Check_OST(); // Ensure system ready for TX and RX
+	SPCR |= (1<<SPE)//turn on SPI interrupts after init is done
 }
 
 
@@ -245,59 +247,10 @@ uint8_t ENC28J60_coms_attach(void)
 	return ret_val;
 }
 
-/** 
- * uint8_t ENC28J60_Check_OST(void);
- * \brief Enc28j60 function to check OST bit ready
- *
- *
- *
- *
- *
- */
- /***************************Check OST CLKRDY********************************************
-Check the Oscillator Start-up Timer CLKRDY bit on the enc28j60
-When the OST expires, the CLKRDY bit in the ESTAT register will be set to 1
-returns itemp value of 1 when ready
-***************************************************************************************/
-uint8_t ENC28J60_Check_OST(void)
+void enc28j60_soft_reset(void)
 {
-	uint8_t itemp =0, itemp2=0;						//temp var to return at end of function
-	uint8_t data;
-	
-	if (SREG &(1<<7))								//check global interrupts
-		{
-			cli();									// disable global interrupts
-			itemp2=1;
-		}
-	
-		ENC28J60_PORT &= ~(1<<ENC28J60_CS);			//chip select low
-		SPDR=(WRITE_CTRL_REG | ESTAT);
-		
-		spi_wait();
-		ENC28J60_PORT |= (1<<ENC28J60_CS);			//chip select low
-		
-	while(itemp==0)
-	{
-		ENC28J60_PORT &= ~(1<<ENC28J60_CS);			//chip select low
-		SPDR=(READ_CTRL_REG | ESTAT);				//op code for reading register-need op code + argument to read register
-		spi_wait();									// wait
-		
-		data=SPDR;									//make var data equal to SPDR value
-		ENC28J60_PORT |= (1<<ENC28J60_CS);			//chip select low
-	
-		if (data&(1<<0))							
-			{
-				itemp=1;
-			}
-			
-	}
-										
-	if(itemp2==1)
-		{
-			sei();									// enable global interrupts
-			
-		}							
-		
-	return itemp;
-	
+	SPDR = SYS_RESET_CMD; 
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	timer_set_delay(0,1); //use timer 0, 1ms delay. 
+	while(!timer_check_delay(0)){}//wait 1ms for the oscillator to stabilize
 }

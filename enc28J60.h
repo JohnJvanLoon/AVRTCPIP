@@ -242,5 +242,6 @@ void WRITE_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 uint8_t enc28j60_comm_run_state(void);
+void enc28j60_soft_reset(void); 
 
 #endif
