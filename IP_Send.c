@@ -67,3 +67,17 @@ uint8_t IP_send_comm(void)
 	}
 	return ret_val;	
 }
+
+uint8_t IP_send_attach(void)
+{
+	uint8_t ret_val=0;
+	if (ETH_send_attach()){
+	if (IP_send_comm_data.state==Idle) {
+		IP_send_comm_data.state=Attached;
+		ret_val=1;
+		// initialize SPI timer here.  For now it is not implemented.
+		// timer_set_delay(0,10);
+	}
+	}
+	return ret_val;
+}
