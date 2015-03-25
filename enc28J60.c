@@ -158,3 +158,14 @@ int ENC28J60_coms_release(void)
 	}
 	return temp;//report success or failure
 }
+
+int ENC28J60_coms_attach(void)
+{
+	uint8_t ret_val=0;
+	ret_val= = spi_request_attach(); //sets value for attach
+	if (ret_val==1 && && enc28J60_comm_data.state=Idle)
+	{
+		enc28j60_comm_data.state=Ready_To_Send; //sets state to ready_to_send
+	}
+	return ret_val;
+}
