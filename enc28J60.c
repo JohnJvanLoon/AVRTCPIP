@@ -8,8 +8,6 @@
 #include "SPI.h"
 #include "enc28J60.h"
 
-void SPI_WAIT(void);	//creates wait function function
-void WRITE_ENC28_CTRL(uint8_t ARGUMENT, uint8_t data); //creates the registry write function 
 void MAC_Init(void); 	//creates initialization function
 
 typedef enum  {Idle, Ready_To_Send, RW_Register, RW_Data, Complete} enc28j60_comm_states;
@@ -56,16 +54,34 @@ int enc28j60_comm(void)
 	return ret_val;	
 }
 /***************WRITE_ENC28_CTRL*********************************************
-*This funciton may be used to write any registers on the ENC28J60			*
+*This function may be used to write any registers on the ENC28J60			*
 *****************************************************************************/
-void WRITE_ENC28_CTRL(uint8_t REGISTER, uint8_t data)	//takes the register location argument and writes the data to it
+void WRITE_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)	//takes the register location argument and writes the data to it
 {
-	uint8_t packet[4]; 
-	packet[0] = (BIT_FIELD_SET|ECON1); 
-	packet[1] = ((REGISTER && 0xE0) >> BANK_OFFSET); 
-	packet[2] = (WRITE_CTRL_REG | (0x1F && REGISTER));
-	packet[3] = data; 
-	spi_TXRX_data(4,packet); 
+	uint8_t packet[2]; 
+	packet[0] = (WRITE_CTRL_REG|(0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
+	packet[1] = data; 
+	spi_TXRX_data(sizeof(packet),packet); 
+}
+/***************BITSET_ENC28_CTRL*********************************************
+*This function may be used to set bits in registers on the ENC28J60			*
+*****************************************************************************/
+void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
+{
+	uint8_t packet[2]; 
+	packet[0] = (BIT_FIELD_SET | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
+	packet[1] = data; 
+	spi_TXRX_data(sizeof(packet), packet); 
+}
+/***************BITCLR_ENC28_CTRL*********************************************
+*This function may be used to clear bits in registers on the ENC28J60			*
+*****************************************************************************/
+void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
+{
+	uint8_t packet[2];
+	packet[0] = (BIT_FIELD_CLR | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
+	packet[1] = data;
+	spi_TXRX_data(sizeof(packet), packet);
 }
 
 /*******************MAC_Init*************************************************************************************************************
@@ -77,13 +93,13 @@ void WRITE_ENC28_CTRL(uint8_t REGISTER, uint8_t data)	//takes the register locat
 void MAC_Init (void)
 {
 //MACON1 These bits enable the pause frame control that is required for flow control and to pass all frames to the MAC
-WRITE_ENC28_CTRL(MACON1, ((1<<TXPAUS)|(1<<RXPAUS)|(1<<PASSALL)|(1<<MARXEN)));	
+WRITE_ENC28J60_CTRL(MACON1, ((1<<TXPAUS)|(1<<RXPAUS)|(1<<PASSALL)|(1<<MARXEN)));	
 //MACON3 This pads all frames to 64 bytes and appends CRC, enables Frame length check and full duplex operation
-WRITE_ENC28_CTRL(MACON3, ((1<<PADCFG2)|(1<<PADCFG1)|(1<<PADCFG0)|(1<<TXCRCEN)|(1<<FRMLNEN)|(1<<FULDPX)));	
+WRITE_ENC28J60_CTRL(MACON3, ((1<<PADCFG2)|(1<<PADCFG1)|(1<<PADCFG0)|(1<<TXCRCEN)|(1<<FRMLNEN)|(1<<FULDPX)));	
 //MACON4 enables transmission deferral if the medium is occupied, other settings are for half duplex only
-WRITE_ENC28_CTRL(MACON4, ((1<<DEFER)));
+WRITE_ENC28J60_CTRL(MACON4, ((1<<DEFER)));
 //MABBIPG This is the back to back inter-packet gap. recommended setting is 15h for minimum 802.3 compliance
-WRITE_ENC28_CTRL(MABBIPG, ((0x15)));
+WRITE_ENC28J60_CTRL(MABBIPG, ((0x15)));
 }
 /** 
  * function ENC28J60_init
