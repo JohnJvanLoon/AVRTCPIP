@@ -220,13 +220,15 @@
 #define SYS_RESET_CMD  0xFF
 
 /// ******************* Definitions *********************
-#define DDR_SPI DDRB
-#define PORT_SPI PORTB
-#define PIN_SPI PINB
-#define BIT_MOSI 5
-#define BIT_MISO 6 
-#define BIT_SCK 7
-#define BIT_SS 4
+/// Definitions for the ENC28J60 control Lines
+#define ENC28J60_DDR DDRB
+#define ENC28J60_PORT PORTB
+#define ENC28J60_PIN PINB
+#define ENC28J60_MOSI PB5
+#define ENC28J60_MISO PB6 
+#define ENC28J60_SCK PB7
+#define ENC28J60_CS PB4
+
 
 
 /************************************************************************/
@@ -235,8 +237,11 @@
 void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast);
 void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch);
 void enc28J60_SPI_Init(void);
-int ENC28J60_coms_release(void);
+uint8_t ENC28J60_coms_release(void);
+uint8_t ENC28J60_coms_attach(void);
 void WRITE_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
+
+
 #endif
