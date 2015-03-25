@@ -28,6 +28,12 @@ uint8_t ETH_Send_comm()
 
 		break;
 		case ETH_Send_Start:
+			if (spi_request_attach()==1)	//request an spi attach to send via ETHERNET
+				{
+				ETH_Send_comm_data.state = Setup_TX_Packet;	//go to the next state
+				ret_val=1;
+				}
+			else ret_val =0;
 
 		break;
 		case Setup_TX_Packet:
