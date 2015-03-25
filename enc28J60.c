@@ -307,3 +307,5 @@ void enc28j60_soft_reset(void)
 	while(!timer_check_delay(0));//wait 1ms for the oscillator to stabilize
 	cli();
 }
+
+uint8_t SPI_read_data(uint8_t *data, uint8_t len) // Calling function to read SPI_Data
