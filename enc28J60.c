@@ -9,7 +9,8 @@
 #include "SPI.h"
 #include "enc28J60.h"
 
-void MAC_Init(void); 	//creates initialization function
+void ENC28J60_MAC_Init(void); 	//creates initialization function
+uint8_t ENC28J60_Check_OST(void); 
 
 typedef enum  {Idle, Ready_To_Send, RW_Register, RW_Data, Complete} enc28j60_comm_states;
 	
@@ -91,8 +92,10 @@ void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
 *  
 * These registers set duplex, frame control, and padding, CRC... 
 *****************************************************************************************************************************************/
-void MAC_Init (void)
+void ENC28J60_MAC_Init(void)
 {
+	static uint8_t uitemp;
+	
 	// Select register Bank 2
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPDR=WRITE_CTRL_REG|(0x1F && ECON1);
@@ -157,6 +160,13 @@ void MAC_Init (void)
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPDR=READ_CTRL_REG|(0x1F && ETXNDH);
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	uitemp=SPDR;
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+
 }
 /** 
  * function ENC28J60_init
@@ -172,7 +182,9 @@ void MAC_Init (void)
 void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
 {
 	// Initialize the ENC28J60 for the following set up
-	MAC_Init();
+	ENC28J60_MAC_Init();
+	enc28j60_comm_data.state=Idle;
+	ENC28J60_Check_OST(); // Ensure system ready for TX and RX
 }
 
 
