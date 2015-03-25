@@ -162,6 +162,7 @@ void enc28J60_SPI_Init(void)
 	
 	SPCR = (1<<SPE)| (1<<MSTR); //Enable SPI Interrupt, Set as Master, Mode 0,0
 	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
+	ENC28J60_DDR |= (1<<ENC28J60_CS) | (1<<ENC28J60_SCK) | (1<<ENC28J60_MOSI); 
 }
 
 uint8_t ENC28J60_coms_release(void)

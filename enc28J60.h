@@ -221,8 +221,15 @@
 
 /// ******************* Definitions *********************
 /// Definitions for the ENC28J60 control Lines
-#define ENC28J60_PORT	PORTB
-#define ENC28J60_CS		PB4
+#define ENC28J60_DDR DDRB
+#define ENC28J60_PORT PORTB
+#define ENC28J60_PIN PINB
+#define ENC28J60_MOSI PB5
+#define ENC28J60_MISO PB6 
+#define ENC28J60_SCK PB7
+#define ENC28J60_CS PB4
+
+
 
 /************************************************************************/
 /* Function declarations                                                */
