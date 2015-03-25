@@ -1,0 +1,3 @@
+The contents of this directory are documentation files describing the design of the program. This includes things such as the state tables and how to interact with them but not code documentation.
+The code is documented with doxygen.
+JvL -2015

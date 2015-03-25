@@ -27,14 +27,14 @@
     <BootSegment>2</BootSegment>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfFrameworkConfig>
-      <framework-data xmlns="">
+      <framework-data>
   <options />
   <configurations />
   <files />
   <documentation help="" />
   <offline-documentation help="" />
   <dependencies>
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.21.0" />
+    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.10.1" />
   </dependencies>
 </framework-data>
     </AsfFrameworkConfig>
@@ -102,7 +102,19 @@
     <Compile Include="enc28J60.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="Ethernet.c">
+    <Compile Include="Eth.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Eth_Receive.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Eth_Send.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="IP_Receive.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="IP_Send.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="SPI.c">
