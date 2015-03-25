@@ -5,6 +5,7 @@
  *  Author: John
  */ 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "SPI.h"
 #include "enc28J60.h"
 
@@ -163,7 +164,7 @@ void enc28J60_SPI_Init(void)
 	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
 }
 
-int ENC28J60_coms_release(void)
+uint8_t ENC28J60_coms_release(void)
 {
 	int temp;
 	temp=spi_clear_coms(); //attempts to clear coms
@@ -175,11 +176,11 @@ int ENC28J60_coms_release(void)
 	return temp;//report success or failure
 }
 
-int ENC28J60_coms_attach(void)
+uint8_t ENC28J60_coms_attach(void)
 {
 	uint8_t ret_val=0;
-	ret_val= = spi_request_attach(); //sets value for attach
-	if (ret_val==1 && && enc28J60_comm_data.state=Idle)
+	ret_val= spi_request_attach(); //sets value for attach
+	if ((ret_val==1) && (enc28j60_comm_data.state=Idle))
 	{
 		enc28j60_comm_data.state=Ready_To_Send; //sets state to ready_to_send
 	}
@@ -203,7 +204,7 @@ returns itemp value of 1 when ready
 uint8_t ENC28J60_Check_OST(void)
 {
 	uint8_t itemp =0, itemp2=0;						//temp var to return at end of function
-	var data;
+	uint8_t data;
 	
 	if (SREG &(1<<7))								//check global interrupts
 		{
@@ -211,20 +212,20 @@ uint8_t ENC28J60_Check_OST(void)
 			itemp2=1;
 		}
 	
-		CS &= ~(1<<CS);								//chip select low
+		ENC28J60_PORT &= ~(1<<ENC28J60_CS);			//chip select low
 		SPDR=(WRITE_CTRL_REG | ESTAT);
 		
-		SPI_WAIT();
-		CS |=(1<<CS);								//chip select high
-	
+		spi_wait();
+		ENC28J60_PORT |= (1<<ENC28J60_CS);			//chip select low
+		
 	while(itemp==0)
 	{
-		CS &= ~(1<<CS);								//chip select low
+		ENC28J60_PORT &= ~(1<<ENC28J60_CS);			//chip select low
 		SPDR=(READ_CTRL_REG | ESTAT);				//op code for reading register-need op code + argument to read register
-		SPI_WAIT();									// wait
+		spi_wait();									// wait
 		
 		data=SPDR;									//make var data equal to SPDR value
-		CS |=(1<<CS);								//chip select high
+		ENC28J60_PORT |= (1<<ENC28J60_CS);			//chip select low
 	
 		if (data&(1<<0))							
 			{

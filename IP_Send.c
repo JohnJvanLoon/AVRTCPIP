@@ -9,7 +9,7 @@
 #include "ETH_send.h"
 #include "IP_Send.h"
 
-typedef enum  {Idle, Attach, Write, S2, S3, S4, S5, S6, Write_Dest_IP, S8, Eth_Send_State, S10, IP_Release} IP_send_comm_states;
+typedef enum  {Idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, Complete} IP_send_comm_states;
 	
 typedef struct
 {
@@ -27,10 +27,10 @@ uint8_t IP_send_comm(void)
 		case Idle:
 
 		break;
-		case Attach:
+		case S0A:
 
 		break;
-		case Write:
+		case S1:
 
 		break;
 		case S2:
@@ -48,19 +48,19 @@ uint8_t IP_send_comm(void)
 		case S6:
 
 		break;
-		case Write_Dest_IP:
+		case S7:
 
 		break;
 		case S8:
 
 		break;
-		case Eth_Send_State:
+		case S9:
 
 		break;
 		case S10:
 
 		break;
-		case IP_Release:
+		case Complete:
 
 		break;
 		default: // state is corrupt.
@@ -73,13 +73,13 @@ uint8_t IP_send_comm(void)
 uint8_t IP_send_attach(void)
 {
 	uint8_t ret_val=0;
-	if (ETH_send_attach()){
+	if (ETH_Send_Attach()){
 	if (IP_send_comm_data.state==Idle) {
-		IP_send_comm_data.state=Attached;
+		IP_send_comm_data.state=S0A;
 		ret_val=1;
 		// initialize SPI timer here.  For now it is not implemented.
 		// timer_set_delay(0,10);
-	}
+		}
 	}
 	return ret_val;
 }
@@ -87,9 +87,9 @@ uint8_t IP_send_attach(void)
 uint8_t IP_Send_Start (void)
 {
 	uint8_t ret_val=0;
-	if (spi_data.len==0 && IP_data.state==S0A)
+	if (IP_send_comm_data.state==S0A)
 	{
-		IP_data.state=S1;
+		IP_send_comm_data.state=S1;
 		ret_val=1;
 	}
 	return ret_val;
@@ -99,13 +99,13 @@ uint8_t IP_Send_Release (void)
 {
 	uint8_t ret_val=0;
 	
-	if (ETH_Send_Release(void))
+	if (ETH_Send_Release())
 	{
-		if (spi_data.len==0 && IP_data.state==Complete)
+		if (IP_send_comm_data.state!=Complete)
 		{
-			IP_data.state=Idle;
-			ret_val=1;
 		}
+			IP_send_comm_data.state=Idle;
+			ret_val=1;
 	}
 
 	return ret_val;

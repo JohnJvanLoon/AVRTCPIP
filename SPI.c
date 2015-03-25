@@ -205,3 +205,24 @@ int spi_clear_coms(void)
 {
 	return 0;
 }
+
+/************************************************************************//**
+ *  spi_wait
+ * \brief blocking call to wait for spi coms to complete. Not part of the state sequences.
+ *
+ ************************************************************************/
+void spi_wait(void)
+{
+	while(!(SPSR & (1<<SPIF)));
+}
+
+/************************************************************************//**
+ *  spi_data_len
+ * \brief returns the number of bytes in the data queue waiting to be sent.
+ *
+ * returns the number of bytes in the queue to be sent.
+ ************************************************************************/
+uint8_t spi_data_len(void)
+{
+	return spi_data.len;
+}

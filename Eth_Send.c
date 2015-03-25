@@ -8,6 +8,8 @@
  */ 
 
 #include <avr/io.h>
+#include "spi.h"
+#include "enc28J60.h"
 #include "Eth_Send.h"
 
 typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
@@ -115,7 +117,7 @@ uint8_t ETH_Send_Attach(void)
 uint8_t return_val=0;
 if (ETH_Send_comm_data.state==Idle)
 {
-if (enc28j60_send_attach ==1)
+if (ENC28J60_coms_attach() ==1)
 {
 ETH_Send_comm_data.state=ETH_Send_Start;
 return_val=1;
