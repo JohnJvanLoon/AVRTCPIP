@@ -100,12 +100,12 @@
 
 //Bank 3 Registers:
 #define BANK_3		0x03
-#define MAADR5		(BANK_3<<BANK_OFFSET) | 0x00
-#define MAADR6		(BANK_3<<BANK_OFFSET) | 0x01
-#define MAADR3		(BANK_3<<BANK_OFFSET) | 0x02
-#define MAADR4		(BANK_3<<BANK_OFFSET) | 0x03
-#define MAADR1		(BANK_3<<BANK_OFFSET) | 0x04
-#define MAADR2		(BANK_3<<BANK_OFFSET) | 0x05
+#define MAADR5		((BANK_3<<BANK_OFFSET) | 0x00)
+#define MAADR6		((BANK_3<<BANK_OFFSET) | 0x01)
+#define MAADR3		((BANK_3<<BANK_OFFSET) | 0x02)
+#define MAADR4		((BANK_3<<BANK_OFFSET) | 0x03)
+#define MAADR1		((BANK_3<<BANK_OFFSET) | 0x04)
+#define MAADR2		((BANK_3<<BANK_OFFSET) | 0x05)
 #define EBSTSD		(BANK_3<<BANK_OFFSET) | 0x06
 #define EBSTCON		(BANK_3<<BANK_OFFSET) | 0x07
 #define EBSTCSL		(BANK_3<<BANK_OFFSET) | 0x08
@@ -238,7 +238,8 @@ void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast);
 void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch);
 uint8_t ENC28J60_coms_release(void);
 uint8_t ENC28J60_coms_attach(void);
-void WRITE_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data);
+uint8_t ENC28J60_read_register(uint8_t reg);
+uint8_t ENC28J60_write_register(uint8_t reg, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 uint8_t enc28j60_comm_run_state(void);
