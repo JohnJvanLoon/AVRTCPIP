@@ -67,7 +67,7 @@ uint8_t enc28j60_comm_run_state(void)
 		
 			break;
 		case Complete:
-			ENC28J60_PORT|=(1<<ENC28J60_CS);	
+			// ENC28J60_PORT|=(1<<ENC28J60_CS);	can not be put here. This would terminate a data transfer! Must be placed in the release function
 			break;
 			
 		default: // state is corrupt.
@@ -282,6 +282,7 @@ uint8_t ENC28J60_coms_release(void)
 			{
 				temp=1;
 				enc28j60_comm_data.state=Idle;
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
 	return temp;//report success or failure
 }
