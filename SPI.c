@@ -129,15 +129,14 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 {
 	spi_data.r_index = spi_data.w_index;	//Set read pointer to write pointer
 	uint8_t temp;
-	// need to disable the ADC ISR here
 	temp=spi_data.w_index+spi_data.len; // get buffer index to store the byte in
 
 	while ((len>0)&&(spi_data.len<=SPI_BUFFER_SIZE)) {
 		spi_data.len++;
-		temp++;
-		len--;
 		if (temp>=SPI_BUFFER_SIZE) temp-=SPI_BUFFER_SIZE;
 		spi_data.data[temp]=*data;
+		temp++;
+		len--;
 		data++;
 	}
 	if (((spi_data.state==Attached)||(spi_data.state==Complete))&&(spi_data.len>0)) {
@@ -238,4 +237,14 @@ void spi_init_enc28j60(void)
 	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
 	ENC28J60_DDR |= (1<<ENC28J60_CS) | (1<<ENC28J60_SCK) | (1<<ENC28J60_MOSI);
 	ENC28J60_PORT|=(1<<ENC28J60_CS); // start high.
+}
+
+/************************************************************************//**
+ *  spi_interrupt_on
+ * \brief enables the spi complete interrupt
+ *
+ ************************************************************************/
+void spi_interrupt_on(void)
+{
+	SPCR|=(1<<SPIE);
 }

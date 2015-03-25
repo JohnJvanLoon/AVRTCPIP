@@ -46,6 +46,7 @@ void init(void)
 	spi_init_enc28j60();
 	spi_init();
 	ENC28J60_init(0,0,0);
+	spi_interrupt_on();
 }
 
 void run_states(void)
@@ -67,7 +68,7 @@ void run_debug(void)
 			state=2;
 			break;
 		case 2: // Select register bank 3
-			buf[0]=WRITE_CTRL_REG|(0x1F && ECON1);
+			buf[0]=WRITE_CTRL_REG|(0x1F & ECON1);
 			buf[1]=3;
 			spi_TXRX_data(2,buf);
 			state = 3;
@@ -83,7 +84,7 @@ void run_debug(void)
 			state=5;
 			break;
 		case 5:
-			buf[0]=WRITE_CTRL_REG|(0x1F && MAADR1);
+			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR1);
 			buf[1]=my_mac[5];
 			spi_TXRX_data(2,buf);
 			state = 6;
@@ -99,7 +100,7 @@ void run_debug(void)
 			state=8;
 			break;
 		case 8:
-			buf[0]=WRITE_CTRL_REG|(0x1F && MAADR2);
+			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR2);
 			buf[1]=my_mac[4];
 			spi_TXRX_data(2,buf);
 			state = 9;
@@ -115,7 +116,7 @@ void run_debug(void)
 			state=11;
 			break;
 		case 11:
-			buf[0]=WRITE_CTRL_REG|(0x1F && MAADR3);
+			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR3);
 			buf[1]=my_mac[3];
 			spi_TXRX_data(2,buf);
 			state = 12;

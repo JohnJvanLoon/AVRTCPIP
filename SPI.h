@@ -14,5 +14,5 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len);
 int spi_clear_coms(void);//incompleate
 void spi_wait(void);
 uint8_t spi_data_len(void);
-
+void spi_interrupt_on(void);
 #endif
