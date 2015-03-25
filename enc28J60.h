@@ -240,6 +240,7 @@ void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch);
 uint8_t ENC28J60_coms_release(void);
 uint8_t ENC28J60_coms_attach(void);
 uint8_t ENC28J60_read_register(uint8_t reg);
+uint8_t ENC28J60_retrieve_register_value(uint8_t *val);
 uint8_t ENC28J60_write_register(uint8_t reg, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
