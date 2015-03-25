@@ -185,3 +185,60 @@ int ENC28J60_coms_attach(void)
 	}
 	return ret_val;
 }
+
+/** 
+ * uint8_t ENC28J60_Check_OST(void);
+ * \brief Enc28j60 function to check OST bit ready
+ *
+ *
+ *
+ *
+ *
+ */
+ /***************************Check OST CLKRDY********************************************
+Check the Oscillator Start-up Timer CLKRDY bit on the enc28j60
+When the OST expires, the CLKRDY bit in the ESTAT register will be set to 1
+returns itemp value of 1 when ready
+***************************************************************************************/
+uint8_t ENC28J60_Check_OST(void)
+{
+	uint8_t itemp =0, itemp2=0;						//temp var to return at end of function
+	var data;
+	
+	if (SREG &(1<<7))								//check global interrupts
+		{
+			cli();									// disable global interrupts
+			itemp2=1;
+		}
+	
+		CS &= ~(1<<CS);								//chip select low
+		SPDR=(WRITE_CTRL_REG | ESTAT);
+		
+		SPI_WAIT();
+		CS |=(1<<CS);								//chip select high
+	
+	while(itemp==0)
+	{
+		CS &= ~(1<<CS);								//chip select low
+		SPDR=(READ_CTRL_REG | ESTAT);				//op code for reading register-need op code + argument to read register
+		SPI_WAIT();									// wait
+		
+		data=SPDR;									//make var data equal to SPDR value
+		CS |=(1<<CS);								//chip select high
+	
+		if (data&(1<<0))							
+			{
+				itemp=1;
+			}
+			
+	}
+										
+	if(itemp2==1)
+		{
+			sei();									// enable global interrupts
+			
+		}							
+		
+	return itemp;
+	
+}
