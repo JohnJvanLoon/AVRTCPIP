@@ -102,10 +102,10 @@ uint8_t spi_request_attach(void)
 	return ret_val;
 }
 
-uint8_t SPI_Release (void)
+uint8_t spi_release (void)
 {
 	uint8_t ret_val=0;
-	if (spi_data.len==0 && spi_data.state==Complete)
+	if (spi_data.state==Complete)
 	{
 		spi_data.state=Idle;
 		ret_val=1;
@@ -199,10 +199,7 @@ ISR(SPI_STC_vect)
 }
 
 //unfinished helper functions created for the sake of deffinitions
-int spi_release(void)
-{
-	return 0;
-}
+
 int spi_clear_coms(void)
 {
 	return 0;

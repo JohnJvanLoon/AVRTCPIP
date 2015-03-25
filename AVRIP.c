@@ -127,6 +127,7 @@ void run_debug(void)
 			}
 		break;
 		case 13: // complete
+			spi_release();
 			break;
 
 		default:

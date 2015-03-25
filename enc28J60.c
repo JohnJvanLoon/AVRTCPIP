@@ -98,41 +98,41 @@ void ENC28J60_MAC_Init(void)
 	
 	// Select register Bank 2
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & ECON1));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ECON1));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=2;
+	SPI_DATA_REG=2;
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
 	//MACON1 These bits enable the pause frame control that is required for flow control and to pass all frames to the MAC
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=((WRITE_CTRL_REG)|(0x1F & MACON1));
+	SPI_DATA_REG = WRITE_CTRL_REG | (0x1F & MACON1);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=((1<<TXPAUS)|(1<<RXPAUS)|(1<<PASSALL)|(1<<MARXEN));
+	SPI_DATA_REG=((1<<TXPAUS)|(1<<RXPAUS)|(1<<PASSALL)|(1<<MARXEN));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
 	//MACON3 This pads all frames to 64 bytes and appends CRC, enables Frame length check and full duplex operation
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & MACON3));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MACON3));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=((1<<PADCFG2)|(1<<PADCFG1)|(1<<PADCFG0)|(1<<TXCRCEN)|(1<<FRMLNEN)|(1<<FULDPX));
+	SPI_DATA_REG=((1<<PADCFG2)|(1<<PADCFG1)|(1<<PADCFG0)|(1<<TXCRCEN)|(1<<FRMLNEN)|(1<<FULDPX));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
 	//MACON4 enables transmission deferral if the medium is occupied, other settings are for half duplex only
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & MACON4));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MACON4));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=((1<<DEFER));
+	SPI_DATA_REG=((1<<DEFER));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
 	//MABBIPG This is the back to back inter-packet gap. recommended setting is 15h for minimum 802.3 compliance
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & MABBIPG));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MABBIPG));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=((0x15));
+	SPI_DATA_REG=((0x15));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
@@ -140,30 +140,30 @@ void ENC28J60_MAC_Init(void)
 	// currently made to 1529 bytes. (5F9)
 	// Select register Bank 0
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & ECON1));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ECON1));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=0;
+	SPI_DATA_REG=0;
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 		
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & ETXNDL));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXNDL));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=((0xF9));
-	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	ENC28J60_PORT|=(1<<ENC28J60_CS);
-
-	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(WRITE_CTRL_REG|(0x1F & ETXNDH));
-	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=((0x05));
+	SPI_DATA_REG=((0xF9));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPDR=(READ_CTRL_REG|(0x1F & ETXNDL));
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXNDH));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPDR=0; // dummy byte
+	SPI_DATA_REG=((0x05));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(READ_CTRL_REG|(0x1F & ETXNDL));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=0; // dummy byte
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	uitemp=SPDR;
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
@@ -224,13 +224,13 @@ void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
 
 uint8_t ENC28J60_coms_release(void)
 {
-	int temp;
-	temp=spi_clear_coms(); //attempts to clear coms
-	if (temp==1) //if coms cleared an attempt to release the spi is made
-	{
-		temp=spi_release();
-		return temp;
-	}
+	int temp=0;
+	if (enc28j60_comm_data.state==Complete)
+		if (spi_release()) //if coms cleared an attempt to release the spi is made
+			{
+				temp=1;
+				enc28j60_comm_data.state=Idle;
+			}
 	return temp;//report success or failure
 }
 
