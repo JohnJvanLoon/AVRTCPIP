@@ -6,6 +6,7 @@
 // Contributors         : Roy Burnison,
 // Contributors         : Wasay Shaikh,
 // Contributors         : Alexander Wilson,
+// Contributors         : Ashish Kumar
 // Created              : 3/xx/2015
 // Revised              : 3/17/2015
 // Version              : 0.4
@@ -29,55 +30,55 @@
 #define BANK_OFFSET 5
 //Bank 0 Registers: 
 #define BANK_0		0x00
-#define ERDPTL		(BANK_0<<BANK_OFFSET) | 0x00
-#define ERDPTH		(BANK_0<<BANK_OFFSET) | 0x01
-#define EWRPTL		(BANK_0<<BANK_OFFSET) | 0x02
-#define EWRPTH		(BANK_0<<BANK_OFFSET) | 0x03
-#define ETXSTL		(BANK_0<<BANK_OFFSET) | 0x04
-#define ETXSTH		(BANK_0<<BANK_OFFSET) | 0x05
+#define ERDPTL		((BANK_0<<BANK_OFFSET) | 0x00)
+#define ERDPTH		((BANK_0<<BANK_OFFSET) | 0x01)
+#define EWRPTL		((BANK_0<<BANK_OFFSET) | 0x02)
+#define EWRPTH		((BANK_0<<BANK_OFFSET) | 0x03)
+#define ETXSTL		((BANK_0<<BANK_OFFSET) | 0x04)
+#define ETXSTH		((BANK_0<<BANK_OFFSET) | 0x05)
 #define ETXNDL		((BANK_0<<BANK_OFFSET) | 0x06)
 #define ETXNDH		((BANK_0<<BANK_OFFSET) | 0x07)
 #define ERXSTL		((BANK_0<<BANK_OFFSET) | 0x08)
 #define ERXSTH		((BANK_0<<BANK_OFFSET) | 0x09)
-#define ERXNDL		(BANK_0<<BANK_OFFSET) | 0x0A
-#define ERXNDH		(BANK_0<<BANK_OFFSET) | 0x0B
-#define ERXRDPTL	(BANK_0<<BANK_OFFSET) | 0x0C
-#define ERXRDPTH	(BANK_0<<BANK_OFFSET) | 0x0D
-#define ERXWRPTL	(BANK_0<<BANK_OFFSET) | 0x0E
-#define ERXWRPTH	(BANK_0<<BANK_OFFSET) | 0x0F
-#define EDMASTL		(BANK_0<<BANK_OFFSET) | 0x10
-#define EDMASTH		(BANK_0<<BANK_OFFSET) | 0x11
-#define EDMANDL		(BANK_0<<BANK_OFFSET) | 0x12
-#define EDMANDH		(BANK_0<<BANK_OFFSET) | 0x13
-#define EDMADSTL	(BANK_0<<BANK_OFFSET) | 0x14
-#define EDMADSTH	(BANK_0<<BANK_OFFSET) | 0x15
-#define EDMACSL		(BANK_0<<BANK_OFFSET) | 0x16
-#define EDMACSH		(BANK_0<<BANK_OFFSET) | 0x17
+#define ERXNDL		(BANK_0<<BANK_OFFSET) | 0x0A)
+#define ERXNDH		(BANK_0<<BANK_OFFSET) | 0x0B)
+#define ERXRDPTL	((BANK_0<<BANK_OFFSET) | 0x0C)
+#define ERXRDPTH	((BANK_0<<BANK_OFFSET) | 0x0D)
+#define ERXWRPTL	((BANK_0<<BANK_OFFSET) | 0x0E)
+#define ERXWRPTH	((BANK_0<<BANK_OFFSET) | 0x0F)
+#define EDMASTL		((BANK_0<<BANK_OFFSET) | 0x10)
+#define EDMASTH		((BANK_0<<BANK_OFFSET) | 0x11)
+#define EDMANDL		((BANK_0<<BANK_OFFSET) | 0x12)
+#define EDMANDH		((BANK_0<<BANK_OFFSET) | 0x13)
+#define EDMADSTL	((BANK_0<<BANK_OFFSET) | 0x14)
+#define EDMADSTH	((BANK_0<<BANK_OFFSET) | 0x15)
+#define EDMACSL		((BANK_0<<BANK_OFFSET) | 0x16)
+#define EDMACSH		((BANK_0<<BANK_OFFSET) | 0x17)
 
 //Bank 1 Registers: 
 #define BANK_1		0x01
-#define EHT0		(BANK_1<<BANK_OFFSET) | 0x00
-#define EHT1		(BANK_1<<BANK_OFFSET) | 0x01
-#define EHT2		(BANK_1<<BANK_OFFSET) | 0x02
-#define EHT3		(BANK_1<<BANK_OFFSET) | 0x03
-#define EHT4		(BANK_1<<BANK_OFFSET) | 0x04
-#define EHT5		(BANK_1<<BANK_OFFSET) | 0x05
-#define EHT6		(BANK_1<<BANK_OFFSET) | 0x06
-#define EHT7		(BANK_1<<BANK_OFFSET) | 0x07
-#define EPMM0		(BANK_1<<BANK_OFFSET) | 0x08
-#define EPMM1		(BANK_1<<BANK_OFFSET) | 0x09
-#define EPMM2		(BANK_1<<BANK_OFFSET) | 0x0A
-#define EPMM3		(BANK_1<<BANK_OFFSET) | 0x0B
-#define EPMM4		(BANK_1<<BANK_OFFSET) | 0x0C
-#define EPMM5		(BANK_1<<BANK_OFFSET) | 0x0D
-#define EPMM6		(BANK_1<<BANK_OFFSET) | 0x0E
-#define EPMM7		(BANK_1<<BANK_OFFSET) | 0x0F
-#define EPMCSL		(BANK_1<<BANK_OFFSET) | 0x10
-#define EPMCSH		(BANK_1<<BANK_OFFSET) | 0x11
-#define EPMOL		(BANK_1<<BANK_OFFSET) | 0x14
-#define EPMOH		(BANK_1<<BANK_OFFSET) | 0x15
-#define ERXFCON		(BANK_1<<BANK_OFFSET) | 0x18
-#define EPKTCNT		(BANK_1<<BANK_OFFSET) | 0x19
+#define EHT0		((BANK_1<<BANK_OFFSET) | 0x00)
+#define EHT1		((BANK_1<<BANK_OFFSET) | 0x01)
+#define EHT2		((BANK_1<<BANK_OFFSET) | 0x02)
+#define EHT3		((BANK_1<<BANK_OFFSET) | 0x03)
+#define EHT4		((BANK_1<<BANK_OFFSET) | 0x04)
+#define EHT5		((BANK_1<<BANK_OFFSET) | 0x05)
+#define EHT6		((BANK_1<<BANK_OFFSET) | 0x06)
+#define EHT7		((BANK_1<<BANK_OFFSET) | 0x07)
+#define EPMM0		((BANK_1<<BANK_OFFSET) | 0x08)
+#define EPMM1		((BANK_1<<BANK_OFFSET) | 0x09)
+#define EPMM2		((BANK_1<<BANK_OFFSET) | 0x0A)
+#define EPMM3		((BANK_1<<BANK_OFFSET) | 0x0B)
+#define EPMM4		((BANK_1<<BANK_OFFSET) | 0x0C)
+#define EPMM5		((BANK_1<<BANK_OFFSET) | 0x0D)
+#define EPMM6		((BANK_1<<BANK_OFFSET) | 0x0E)
+#define EPMM7		((BANK_1<<BANK_OFFSET) | 0x0F)
+#define EPMCSL		((BANK_1<<BANK_OFFSET) | 0x10)
+#define EPMCSH		((BANK_1<<BANK_OFFSET) | 0x11)
+#define EPMOL		((BANK_1<<BANK_OFFSET) | 0x14)
+#define EPMOH		((BANK_1<<BANK_OFFSET) | 0x15)
+#define ERXFCON		((BANK_1<<BANK_OFFSET) | 0x18)
+#define EPKTCNT		((BANK_1<<BANK_OFFSET) | 0x19)
 
 //Bank 2 Registers: 
 #define BANK_2		0x02
@@ -107,16 +108,16 @@
 #define MAADR4		((BANK_3<<BANK_OFFSET) | 0x03)
 #define MAADR1		((BANK_3<<BANK_OFFSET) | 0x04)
 #define MAADR2		((BANK_3<<BANK_OFFSET) | 0x05)
-#define EBSTSD		(BANK_3<<BANK_OFFSET) | 0x06
-#define EBSTCON		(BANK_3<<BANK_OFFSET) | 0x07
-#define EBSTCSL		(BANK_3<<BANK_OFFSET) | 0x08
-#define EBSTCSH		(BANK_3<<BANK_OFFSET) | 0x09
-#define MISTAT		(BANK_3<<BANK_OFFSET) | 0x0A
-#define EREVID		(BANK_3<<BANK_OFFSET) | 0x12
-#define ECOCON		(BANK_3<<BANK_OFFSET) | 0x15
-#define EFLOCON		(BANK_3<<BANK_OFFSET) | 0x17
-#define EPAUSL		(BANK_3<<BANK_OFFSET) | 0x18
-#define EPAUSH		(BANK_3<<BANK_OFFSET) | 0x19
+#define EBSTSD		((BANK_3<<BANK_OFFSET) | 0x06)
+#define EBSTCON		((BANK_3<<BANK_OFFSET) | 0x07)
+#define EBSTCSL		((BANK_3<<BANK_OFFSET) | 0x08)
+#define EBSTCSH		((BANK_3<<BANK_OFFSET) | 0x09)
+#define MISTAT		((BANK_3<<BANK_OFFSET) | 0x0A)
+#define EREVID		((BANK_3<<BANK_OFFSET) | 0x12)
+#define ECOCON		((BANK_3<<BANK_OFFSET) | 0x15)
+#define EFLOCON		((BANK_3<<BANK_OFFSET) | 0x17)
+#define EPAUSL		((BANK_3<<BANK_OFFSET) | 0x18)
+#define EPAUSH		((BANK_3<<BANK_OFFSET) | 0x19)
  
 
 /// ******************* Bit Register ******************** Start
