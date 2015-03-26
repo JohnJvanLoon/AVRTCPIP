@@ -3,13 +3,14 @@
  *
  * Created: 2015-03-23 11:29:58 AM
  * Author: Ryan Walmsley
+ * Nathaniel Tammer
  */ 
 
 #include <avr/io.h>
 #include "ETH_send.h"
 #include "IP_Send.h"
 
-typedef enum  {Idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, Complete} IP_send_comm_states;
+typedef enum {Idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, Complete}IP_send_comm_states;
 	
 typedef struct
 {
@@ -17,7 +18,6 @@ typedef struct
 }IP_send_comm_struct;
 
 volatile IP_send_comm_struct IP_send_comm_data; // global variable for the IP send communication data 
-uint8_t ETH_Send_Release(void);
 
 uint8_t IP_send_comm(void)
 {
@@ -119,9 +119,35 @@ uint16_t IP_send_length(uint16_t length)
 	{
 		if (IP_len_bytes < length)	//If IP_len is less than length
 		{
-			IP_len_bytes = length	//Place packet length into packet for return
+			IP_len_bytes = length;	//Place packet length into packet for return
 		}
 		else IP_len_bytes = 0;
 	}
 	return IP_len_bytes;		//Return the number of bytes read
+}
+
+/**
+* IP_send_HDR_CRC
+* \brief Calculated the checksum for an IP header
+*
+*	This function calculates the checksum of an IP header who's length is specified.  A pointer
+* must be passed to the function that points to the starting address of the current header.
+*	The header being passed must have the checksum field set to a value of zero.
+*
+* \parameter header Pointer to the IP header.
+* \parameter len Length of the IP header in 16 bit words (so 20 byte header is length of 10).
+*
+* Returns the 16 bit checksum value.
+**/
+uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
+{
+	uint32_t header_chksum = 0;
+	for (uint8_t num_bytes = 0;num_bytes < len;num_bytes++)	//Loop for length of header
+	{
+		header_chksum = (header_chksum + *header);	//Add the next 16 bits
+		header++;	//Go to next address in pointer
+	}
+	while (header_chksum >> 16) header_chksum = (header_chksum & 0x0000FFFF) + (header_chksum >> 16);	//Keep adding the carry until it is gone
+	header_chksum = ~header_chksum;	//Take ones compliment
+	return header_chksum;	//Returns the 16 bit checksum
 }
