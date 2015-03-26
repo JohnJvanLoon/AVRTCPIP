@@ -147,7 +147,7 @@ uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
 		header_chksum = (header_chksum + *header);	//Add the next 16 bits
 		header++;	//Go to next address in pointer
 	}
-	while (header_chksum >> 16) header_chksum = (header_chksum & 0xFFFF) + (header_chksum >> 16);	//Keep adding the carry until it is gone
+	while (header_chksum >> 16) header_chksum = (header_chksum & 0x0000FFFF) + (header_chksum >> 16);	//Keep adding the carry until it is gone
 	header_chksum = ~header_chksum;	//Take ones compliment
 	return header_chksum;	//Returns the 16 bit checksum
 }
