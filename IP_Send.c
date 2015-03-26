@@ -142,13 +142,12 @@ uint16_t IP_send_length(uint16_t length)
 uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
 {
 	uint32_t header_chksum = 0;
-	uint8_t num_bytes;
-	for (num_bytes = 0;num_bytes < len;num_bytes++)	//Loop for length of header
+	for (uint8_t num_bytes = 0;num_bytes < len;num_bytes++)	//Loop for length of header
 	{
 		header_chksum = (header_chksum + *header);	//Add the next 16 bits
 		header++;	//Go to next address in pointer
 	}
-	header_chksum = (header_chksum & 0xFFFF) + (header_chksum >> 16);	//Add the carry
+	while (header_chksum & 0xFFFF0000) header_chksum = (header_chksum & 0xFFFF) + (header_chksum >> 16);	//Keep adding the carry untill it is gone
 	header_chksum = ~header_chksum;	//Take ones compliment
 	return header_chksum;	//Returns 16 least significant bits
 }
