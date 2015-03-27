@@ -27,6 +27,7 @@
 #include "enc28J60.h"
 #include "Ethernet.h"
 #include "Timer.h"
+#include "IP_Send.h"
 
 void init(void);
 void run_states(void);
@@ -34,8 +35,10 @@ void run_debug(void);
 
 int main(void)
 {
+	uint16_t * ptr;
 	init();
 	sei();
+	IP_send_HDR_CRC(ptr,0);
     while(1)
     {
         run_states();
