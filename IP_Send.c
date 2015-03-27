@@ -145,30 +145,11 @@ uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
 	
 	while (len>0)//uint8_t num_bytes = 0;num_bytes < len;num_bytes++)	//Loop for length of header
 	{
-		header_chksum = (header_chksum + *header);	//Add the next 16 bits
+		header_chksum += *header;	//Add the next 16 bits
 		header++;	//Go to next address in pointer
 		len--;
 	}
 	while (header_chksum&0xFFFF0000) header_chksum = ((uint16_t)header_chksum) + (header_chksum >> 16);	//add the carry 
 	header_chksum = ~header_chksum;	//Take ones compliment
 	return (uint16_t) header_chksum;	//Returns the 16 bit checksum
-	
-/*		//uint32_t header_chksum = 0;
-		uint16_t hdr_chksum=0, temp;
-		
-		
-		while (len>0)//uint8_t num_bytes = 0;num_bytes < len;num_bytes++)	//Loop for length of header
-		{
-			temp=*header;
-			hdr_chksum+=temp;
-			if (hdr_chksum<(temp)) hdr_chksum++; // check for overflow
-			//		header_chksum = (header_chksum + *header);	//Add the next 16 bits
-			header++;	//Go to next address in pointer
-			len--;
-		}
-		//hdr_chksum = (uint16_t)((uint16_t)(header_chksum ) + (uint16_t)(header_chksum >> 16));	//add the carry
-		//if (SREG&(0x01)) hdr_chksum++;
-		hdr_chksum = ~hdr_chksum;	//Take ones compliment
-		return (uint16_t) hdr_chksum;	//Returns the 16 bit checksum
-		*/
 }
