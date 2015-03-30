@@ -5,6 +5,7 @@
  *  Author: Ashish
  *  Nathaniel Tammer
  *  Mathew Holdom
+ *  Wasay Shaikh
  */ 
 
 #include <avr/io.h>
@@ -124,4 +125,20 @@ return_val=1;
 }
 }
 return return_val;
+}
+
+/************************************************************************//*
+*	ETH_Send_Complete
+* 	When compelte, return the value of 1, otherwise return the value of 0
+************************************************************************/
+
+
+uint8_t ETH_Send_Complete(void)
+{
+	uint8_t return_val=0;
+	if (ETH_Send_comm_data.state==Complete)
+	{
+		ret_val=1;
+	}
+	return return_val;
 }
