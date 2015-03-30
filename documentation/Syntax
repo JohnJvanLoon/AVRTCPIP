@@ -15,6 +15,8 @@ if (code) {
 Code block
 }
 
+Keep code, characters, integers, pointers, and functions in the lower case if possible.
+
 Doxygen syntax
 /// Allow for commenting on single lines
 /** to comment multiple lines 
