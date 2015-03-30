@@ -35,10 +35,10 @@ void run_debug(void);
 
 int main(void)
 {
-	uint16_t * P_ptr;
+	uint16_t uhdr_crc;
 	init();
 	sei();
-	IP_send_HDR_CRC(ptr,0);
+	IP_send_HDR_CRC(&uhdr_crc,0);
     while(1)
     {
         run_states();
@@ -63,73 +63,73 @@ void run_states(void)
 
 void run_debug(void)
 {
-	static uint8_t i_state = 0;
+	static uint8_t istate = 0;
 	uint8_t buf[10]; 
 	switch (state) {
 		case 0: // attach
-			if (spi_request_attach()) i_state = 1;
+			if (spi_request_attach()) istate = 1;
 			break;
 		case 1:
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			i_state = 2;
+			istate = 2;
 			break;
 		case 2: // Select register bank 3
 			buf[0]=WRITE_CTRL_REG|(0x1F & ECON1);
 			buf[1]=3;
 			spi_TXRX_data(2,buf);
-			i_state = 3;
+			istate = 3;
 			break;
 		case 3: // wait for completion
 			if (SPI_CheckComplete()) {
-				i_state = 4;
+				istate = 4;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
 			break;
 		case 4:// send MAC address to ENC28J60
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			i_state = 5;
+			istate = 5;
 			break;
 		case 5:
 			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR1);
 			buf[1]=my_mac[5];
 			spi_TXRX_data(2,buf);
-			i_state = 6;
+			istate = 6;
 			break;
 		case 6: // wait for completion
 			if (SPI_CheckComplete()) {
-				i_state = 7;
+				istate = 7;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
 			break;
 		case 7:
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			i_state = 8;
+			istate = 8;
 			break;
 		case 8:
 			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR2);
 			buf[1]=my_mac[4];
 			spi_TXRX_data(2,buf);
-			i_state = 9;
+			istate = 9;
 			break;
 		case 9: // wait for completion
 			if (SPI_CheckComplete()) {
-				i_state = 10;
+				istate = 10;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
 			break;
 		case 10:
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			i_state = 11;
+			istate = 11;
 			break;
 		case 11:
 			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR3);
 			buf[1]=my_mac[3];
 			spi_TXRX_data(2,buf);
-			i_state = 12;
+			istate = 12;
 			break;
 		case 12: // wait for completion
 			if (SPI_CheckComplete()) {
-				i_state = 13;
+				istate = 13;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
 		break;
@@ -138,7 +138,7 @@ void run_debug(void)
 			break;
 
 		default:
-			i_state = 0;
+			istate = 0;
 			break;
 	}
 }
