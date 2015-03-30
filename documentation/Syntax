@@ -1,20 +1,21 @@
 Programming Prefixes:
 c – char
 i – int
-P – pointer
+p – pointer
 str – string
 _t – type
 
 Examples:
-c_data = character named data
-i_data = integeter named data
-Pc_data = pointer to c_data
+cdata = character named data
+idata = integeter named data
+pcdata = pointer to cdata
 
 Example Code Block:
-If (code) {
+if (code) {
 Code block
 }
 
 Doxygen syntax
 /// Allow for commenting on single lines
 /** to comment multiple lines 
+**/ end multiple line comment
