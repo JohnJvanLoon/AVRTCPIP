@@ -8,7 +8,7 @@ _t – type
 Examples:
 c_data = character named data
 i_data = integeter named data
-P_c_data = pointer to c_data
+Pc_data = pointer to c_data
 
 Example Code Block:
 If (code) {
