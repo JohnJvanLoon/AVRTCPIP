@@ -242,14 +242,58 @@ void ENC28J60_MAC_Init(void)
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXNDL));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0xF9));
+	SPI_DATA_REG=((0xFF));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXNDH));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((0x1F));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXSTL));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((0x06));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXSTH));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((0x1A));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	
+	//RXSTART Must start at 0x0000 as specified in ERRATA
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXSTL));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((0x00));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXSTH));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((0x00));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	
+	//RXEND at 
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXNDL));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	SPI_DATA_REG=((0x05));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXNDH));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((0x1A));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
