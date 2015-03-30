@@ -9,10 +9,6 @@
 #ifndef Ethernet_Struct_H_
 #define Ethernet_Struct_H_
 
-typedef struct{
-uint8_t IP_Address[4];
-uint8_t MAC_Address[6];	
-}ethernet_info;
-
+void ETHERNET_init(void);
 
 #endif /* STORAGE_STRUCTURE_H_ */
