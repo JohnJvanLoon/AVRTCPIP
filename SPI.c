@@ -9,8 +9,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "SPI.h"
+#include "enc28J60.h"
 #include "Timer.h"
+#include "SPI.h"
+
 
 /************************************************************************/
 /* Defines                                                              */
@@ -100,10 +102,10 @@ uint8_t spi_request_attach(void)
 	return ret_val;
 }
 
-uint8_t SPI_Release (void)
+uint8_t spi_release (void)
 {
 	uint8_t ret_val=0;
-	if (spi_data.len==0 && spi_data.state==Complete)
+	if (spi_data.state==Complete)
 	{
 		spi_data.state=Idle;
 		ret_val=1;
@@ -127,20 +129,20 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 {
 	spi_data.r_index = spi_data.w_index;	//Set read pointer to write pointer
 	uint8_t temp;
-	// need to disable the ADC ISR here
 	temp=spi_data.w_index+spi_data.len; // get buffer index to store the byte in
 
 	while ((len>0)&&(spi_data.len<=SPI_BUFFER_SIZE)) {
 		spi_data.len++;
-		temp++;
-		len--;
 		if (temp>=SPI_BUFFER_SIZE) temp-=SPI_BUFFER_SIZE;
 		spi_data.data[temp]=*data;
+		temp++;
+		len--;
 		data++;
 	}
 	if (((spi_data.state==Attached)||(spi_data.state==Complete))&&(spi_data.len>0)) {
 	// start SPI
-		SPDR=spi_data.data[spi_data.w_index]; 
+		SPI_DATA_REG=spi_data.data[spi_data.w_index]; 
+
 		// interrupt routine records read data to the index location
 		// All that is required here is to start the conversion.
 		spi_data.state=Send;
@@ -186,10 +188,63 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 
 ISR(SPI_STC_vect)
 {
-		spi_data.data[spi_data.w_index]=SPDR;
+		spi_data.data[spi_data.w_index]=SPI_DATA_REG;
 		spi_data.w_index++;
 		if (spi_data.w_index>=SPI_BUFFER_SIZE) spi_data.w_index=0;
 		spi_data.len--;
-		if (spi_data.len>0) SPDR=spi_data.data[spi_data.w_index];
+		if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.w_index];
+
 		else spi_data.state=Complete;	
+}
+
+//unfinished helper functions created for the sake of deffinitions
+
+int spi_clear_coms(void)
+{
+	return 0;
+}
+
+/************************************************************************//**
+ *  spi_wait
+ * \brief blocking call to wait for spi coms to complete. Not part of the state sequences.
+ *
+ ************************************************************************/
+void spi_wait(void)
+{
+	while(!(SPSR & (1<<SPIF)));
+}
+
+/************************************************************************//**
+ *  spi_data_len
+ * \brief returns the number of bytes in the data queue waiting to be sent.
+ *
+ * returns the number of bytes in the queue to be sent.
+ ************************************************************************/
+uint8_t spi_data_len(void)
+{
+	return spi_data.len;
+}
+
+/*
+Initialization of the SPI on the enc28j60 .
+The enc28j60 only works in 0,0 mode so there is no CPOL or CPHA set.
+Set up the atmega16 as master, and enable the SPI interrupt
+*/
+
+void spi_init_enc28j60(void)
+{	
+	SPCR = (1<<SPE)| (1<<MSTR); //Enable SPI Interrupt, Set as Master, Mode 0,0
+	SPSR = (1<<SPI2X);        // Double SPI Speed Bit set to 1 for fastest possible clock
+	ENC28J60_DDR |= (1<<ENC28J60_CS) | (1<<ENC28J60_SCK) | (1<<ENC28J60_MOSI);
+	ENC28J60_PORT|=(1<<ENC28J60_CS); // start high.
+}
+
+/************************************************************************//**
+ *  spi_interrupt_on
+ * \brief enables the spi complete interrupt
+ *
+ ************************************************************************/
+void spi_interrupt_on(void)
+{
+	SPCR|=(1<<SPIE);
 }
