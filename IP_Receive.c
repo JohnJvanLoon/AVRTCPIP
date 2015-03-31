@@ -21,7 +21,7 @@ uint8_t ip_receive_request_attach(void)
 {
 	uint8_t ret_val=0;
 	if (ip_receive_data.state==Idle) {
-		ip_receive_data.state=Attached;
+		ip_receive_data.state=S1;
 		ret_val=1;
 	
 	}
