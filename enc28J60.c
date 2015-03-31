@@ -377,24 +377,7 @@ void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
 	
 }
 
-<<<<<<< HEAD
 
-/** 8
- * uint8_t ENC28J60_Check_OST(void);
- * \brief Enc28j60 function to check OST bit ready
- *
- *
- *
- *
- *
- */
-/* 
-Initialization of the SPI on the enc28j60 .
-The enc28j60 only works in 0,0 mode so there is no CPOL or CPHA set.
-Set up the atmega16 as master, and enable the SPI interrupt
-*/
-=======
->>>>>>> c5be192b3ed54a83d5a30b000afb0900800693a5
 
 uint8_t ENC28J60_coms_release(void)
 {
@@ -409,55 +392,7 @@ uint8_t ENC28J60_coms_release(void)
 	return temp;//report success or failure
 }
 
-<<<<<<< HEAD
-/***************************Check OST CLKRDY********************************************
-Check the Oscillator Start-up Timer CLKRDY bit on the enc28j60
-When the OST expires, the CLKRDY bit in the ESTAT register will be set to 1
-returns itemp value of 1 when ready
-***************************************************************************************/
-uint8_t ENC28J60_Check_OST(void)
-{
-	uint8_t itemp =0, itemp2=0;						//temp var to return at end of function
-	var data;
-	
-	if (SREG &(1<<7))								//check global interrupts
-		{
-			cli();									// disable global interrupts
-			itemp2=1;
-		}
-	
-		CS &= ~(1<<CS);								//chip select low
-		SPDR=(WRITE_CTRL_REG | ESTAT);
-		
-		SPI_WAIT();
-		CS |=(1<<CS);								//chip select high
-	
-	while(itemp==0)
-	{
-		CS &= ~(1<<CS);								//chip select low
-		SPDR=(READ_CTRL_REG | ESTAT);				//op code for reading register-need op code + argument to read register
-		SPI_WAIT();									// wait
-		
-		data=SPDR;									//make var data equal to SPDR value
-		CS |=(1<<CS);								//chip select high
-	
-		if (data&(1<<0))							
-			{
-				itemp=1;
-			}
-			
-	}
-										
-	if(itemp2==1)
-		{
-			sei();									// enable global interrupts
-			
-		}							
-		
-	return itemp;
-	
-}
-=======
+
 uint8_t ENC28J60_coms_attach(void)
 {
 	uint8_t ret_val=0;
@@ -479,4 +414,4 @@ void enc28j60_soft_reset(void)
 	cli();
 }
 
->>>>>>> c5be192b3ed54a83d5a30b000afb0900800693a5
+
