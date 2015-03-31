@@ -11,6 +11,8 @@
 #include "Timer.h"
 
 void ENC28J60_MAC_Init(void); 	//creates initialization function
+void ENC28J60_ETHERNET_Init(void);
+
 
 typedef enum  {Idle, Ready_To_Send, S2A, S2B, S2C, S2D, S3, Complete} enc28j60_comm_states;
 //defines for the flags
@@ -298,6 +300,29 @@ void ENC28J60_MAC_Init(void)
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 }
+/*******************ENC28J60_ETHERNET_Init********************************************
+*This function initializes the Ethernet control registers ECON1 and ECON2 
+*Settings may need to be changed pending further decisions!!
+**************************************************************************************/
+ void ENC28J60_ETHERNET_Init(void){
+	 //No Bank Selection is required because the ECON registers are common to all banks
+	 
+	 //ECON1 setting to enable the ethernet checksum and receive
+	 ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	 SPI_DATA_REG = WRITE_CTRL_REG | (0x1F & ECON1);
+	 while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	 SPI_DATA_REG=((1<<CSUMEN)|(1<<ENC28J60_RXEN)); //enable checksum and recieve
+	 while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	 ENC28J60_PORT|=(1<<ENC28J60_CS);
+	 
+	 //ECON2 setting to enable the read and write pointers to auto-increment
+	 ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	 SPI_DATA_REG = WRITE_CTRL_REG | (0x1F & ECON2);
+	 while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	 SPI_DATA_REG=(1<<AUTOINC);  //setup the ENC28J60 buffer pointers to auto-increment (probably simplify things
+	 while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	 ENC28J60_PORT|=(1<<ENC28J60_CS); 
+ }
 /** 
  * function ENC28J60_init
  * \brief Initialization of the enc28J60
@@ -315,6 +340,7 @@ void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
 	SPCR &= ~(1<<SPIE);//turn off SPI interrupts for now
 	enc28j60_soft_reset(); 
 	ENC28J60_MAC_Init();
+	ENC28J60_ETHERNET_Init();
 	enc28j60_comm_data.state=Idle;
 }
 
