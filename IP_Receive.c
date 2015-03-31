@@ -7,15 +7,16 @@
 #include <avr/io.h>
 #include "IP_Receive.h"
 
-typedef enum  {Idle, S1, Complete } ip_receive_states_t;
+typedef enum  {Idle, Attached, S1, Complete } ip_receive_states_t;
 
-typedef struct
+typedef struct 
 {
 	ip_receive_states_t state;
 	
-}ip_recieve_struct;	
+}ip_recieve_struct_t;	
 
-volatile ip_receive_struct ip_receive_data;
+volatile ip_recieve_struct_t ip_receive_data;
+
 uint8_t ip_receive_request_attach(void)
 {
 	uint8_t ret_val=0;

@@ -13,6 +13,8 @@
  */ 
 
 #include <avr/io.h>
+#include "enc28J60.h"
+#include "SPI.h"
 #include "Eth_Receive.h"
 
 typedef enum {ENC_Attached, Check_New_Packet, S2, ENC_Setup_Packet, Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, ENC_Release, Start_IP_Receive, Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, Attach_Request, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
@@ -22,7 +24,7 @@ typedef struct
 	ETH_Receive_comm_States state;
 }ETH_Receive_comm_struct;
 
-volatile ETH_Receive_comm_struct ETH_Receive_comm_data;
+volatile ETH_Receive_comm_struct ETH_receive_comm_data;
 /**************************************************************************************************
 * ETH_Receive_comm
 * Allows packets to be received
@@ -32,23 +34,29 @@ volatile ETH_Receive_comm_struct ETH_Receive_comm_data;
 *****PLEASE NOTE: THIS IS INCOMPLETE!**************(March 31, 2015)
 
 **************************************************************************************************/
-uint8_t ETH_Receive_comm()
+uint8_t ETH_receive_comm(void)
 {
 	uint8_t ret_val=0;
-	switch (ETH_Receive_comm_data.state)
+	switch (ETH_receive_comm_data.state)
 	{
 		case ENC_Attached:
-		uint8_t ENC28J60_coms_attach(void);
-		ETH_Receive_comm_data.state = Check_New_Packet;
-		break;
+			if ( ENC28J60_coms_attach()) { // attached to ENC28J60_coms
+				ETH_receive_comm_data.state = Check_New_Packet;
+			}
+			break;
 		case Check_New_Packet:
-		if (EIR && (1<<PKTIF)){ret_val=1;}
-			else{ret_val=0;}
-		ETH_Receive_comm_data.state = S2;
-		break;
+			ENC28J60_read_register(EIR);
+			ETH_receive_comm_data.state = S2;
+			break;
 		case S2:
-		if (ret_val=1 && SPI_CheckComplete()){ETH_Receive_comm_data.state = ENC_Setup_Packet;}
-			else {ETH_Receive_comm_data.state = Release_ENC;}
+		if (SPI_checkcomplete()){ 
+			ENC28J60_retrieve_register_value(&ret_val);
+			if (ret_val&PKTIF) {
+				ETH_receive_comm_data.state = ENC_Setup_Packet;
+				} else ETH_receive_comm_data.state = Release_ENC;
+			}
+		else ETH_receive_comm_data.state = Release_ENC;
+		ret_val=0;
 		break;
 		case ENC_Setup_Packet:
 	
@@ -57,23 +65,23 @@ uint8_t ETH_Receive_comm()
 
 		break;
 		case S5:
-		if (SPI_CheckComplete()) ETH_Receive_comm_data.state=Read_SRCMAC;
+		if (SPI_checkcomplete()) ETH_receive_comm_data.state=Read_SRCMAC;
 		break;
 		case Read_SRCMAC:
 
 		break;
 		case S7:
-		if (SPI_CheckComplete()) ETH_Receive_comm_data.state=Store_MAC;
+		if (SPI_checkcomplete()) ETH_receive_comm_data.state=Store_MAC;
 		break;
 		case Store_MAC:
 
 		break;
 		case S9:
-		if (SPI_CheckComplete()) ETH_Receive_comm_data.state=ENC_Release;
+		if (SPI_checkcomplete()) ETH_receive_comm_data.state=ENC_Release;
 		break;
 		case ENC_Release:
 		//read
-		uint8_t ENC28J60_coms_release(void);
+		ENC28J60_coms_release();
 		break;
 		case Start_IP_Receive:
 
@@ -94,25 +102,25 @@ uint8_t ETH_Receive_comm()
 
 		break;
 		case Attach_Request:
-		uint8_t ENC28J60_coms_attach(void);
-		ETH_Receive_comm_data.state = Release_Packet;
-		break;
+			ENC28J60_coms_attach();
+			ETH_receive_comm_data.state = Release_Packet;
+			break;
 		case Release_Packet:
 
 		break;
 		case S18a:
-		if (SPI_CheckComplete()) ETH_Receive_comm_data.state=Release_ENC;
-			else ETH_Receive_comm_data.state = Release_Packet;
-		break;
+			if (SPI_checkcomplete()) ETH_receive_comm_data.state=Release_ENC;
+				else ETH_receive_comm_data.state = Release_Packet;
+			break;
 		case Release_ENC:
-		uint8_t ENC28J60_coms_release(void);
-		ETH_Receive_comm_data.state = S20;
-    	break;
+			ENC28J60_coms_release();
+			ETH_receive_comm_data.state = S20;
+    		break;
 		case S20:
-		ETH_Receive_comm_data.state = ENC_Attached;
-		break;
+			ETH_receive_comm_data.state = ENC_Attached;
+			break;
 		default:
-		ETH_Receive_comm_data.state = ENC_Attached;
+			ETH_receive_comm_data.state = ENC_Attached;
 		break;
 	}
 	return ret_val;
