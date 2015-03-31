@@ -31,16 +31,15 @@ uint8_t ETH_Send_comm()
 
 		break;
 		case ETH_Send_Start:
-			if (spi_request_attach()==1)	//request an spi attach to send via ETHERNET
+			ret_val = ENC28J60_coms_attach();
+			if (ret_val==1)	//request an ENC28J60 attach to send via ETHERNET
 				{
 				ETH_Send_comm_data.state = Setup_TX_Packet;	//go to the next state
-				ret_val=1;
 				}
 			else ret_val =0;
-
 		break;
 		case Setup_TX_Packet:
-
+		//writing ewrpt to etxst +1. However, auto increment is enabled so this should be automatic??
 		break;
 		case S2:
 
@@ -134,10 +133,12 @@ uint8_t ETH_Send_Comm_Complete(void);
 	
 	
 }
-uint8_t ETH_Send_Write_REG(void);
+
+inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
 {
-	
-	
+
+	return ENC28J60_write_register(reg, data);
+
 }
 /************************************************************************//*
 *	ETH_Send_Complete
@@ -145,12 +146,12 @@ uint8_t ETH_Send_Write_REG(void);
 ************************************************************************/
 
 
-uint8_t ETH_Send_Complete(void)
+uint8_t ETH_send_complete(void)
 {
-	uint8_t return_val=0;
+	uint8_t iret_val = 0;
 	if (ETH_Send_comm_data.state==Complete)
 	{
-		ret_val=1;
+		iret_val = 1;
 	}
-	return return_val;
+	return iret_val;
 }

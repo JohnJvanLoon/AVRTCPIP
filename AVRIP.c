@@ -65,7 +65,7 @@ void run_debug(void)
 {
 	static uint8_t istate = 0;
 	uint8_t buf[10]; 
-	switch (state) {
+	switch (istate) {
 		case 0: // attach
 			if (spi_request_attach()) istate = 1;
 			break;
@@ -86,12 +86,12 @@ void run_debug(void)
 			}
 			break;
 		case 4:// send MAC address to ENC28J60
-			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			ENC28J60_PORT &=~ (1<<ENC28J60_CS);
 			istate = 5;
 			break;
 		case 5:
-			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR1);
-			buf[1]=my_mac[5];
+			buf[0] = WRITE_CTRL_REG|(0x1F & MAADR1);
+			buf[1] = my_mac[5];
 			spi_TXRX_data(2,buf);
 			istate = 6;
 			break;
