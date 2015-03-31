@@ -377,18 +377,26 @@ void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
 	
 }
 
-
+/** 
+ * function ENC28J60_coms_release
+ * \brief releases the enc comms.
+ *
+ * unattaches the ENC_comms from the current owner. Must be in the complete state to release
+ * and SPI must also release.
+ *
+ * returns 1 on success and 0 on failure.
+  */
 uint8_t ENC28J60_coms_release(void)
 {
-	int temp=0;
+	int ret_val=0;
 	if (enc28j60_comm_data.state==complete)
 		if (spi_release()) //if coms cleared an attempt to release the spi is made
 			{
-				temp=1;
+				ret_val=1;
 				enc28j60_comm_data.state=idle;
-				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				ENC28J60_PORT|=(1<<ENC28J60_CS); // to finish the data read / write operation. Reg read / write already do this.
 			}
-	return temp;//report success or failure
+	return ret_val;//report success or failure
 }
 
 uint8_t ENC28J60_coms_attach(void)

@@ -28,6 +28,8 @@
 #include "Ethernet.h"
 #include "Timer.h"
 #include "IP_Send.h"
+#include "Eth_Receive.h"
+#include "Eth_Send.h"
 
 void init(void);
 void run_states(void);
@@ -53,6 +55,8 @@ void init(void)
 	spi_init();
 	ENC28J60_init(0,0,0);
 	spi_interrupt_on();
+	ETH_receive_init();
+	ETH_send_init();
 }
 
 void run_states(void)
