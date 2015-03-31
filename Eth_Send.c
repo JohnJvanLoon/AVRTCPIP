@@ -132,12 +132,12 @@ return return_val;
 ************************************************************************/
 
 
-uint8_t ETH_Send_Complete(void)
+uint8_t ETH_send_complete(void)
 {
-	uint8_t return_val=0;
+	uint8_t iret_val = 0;
 	if (ETH_Send_comm_data.state==Complete)
 	{
-		ret_val=1;
+		iret_val = 1;
 	}
-	return return_val;
+	return iret_val;
 }
