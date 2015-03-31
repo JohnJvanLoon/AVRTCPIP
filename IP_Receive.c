@@ -22,8 +22,7 @@ uint8_t ip_receive_request_attach(void)
 	if (ip_receive_data.state==Idle) {
 		ip_receive_data.state=Attached;
 		ret_val=1;
-		// initialize SPI timer here.  For now it is not implemented.
-		// timer_set_delay(0,10);
+	
 	}
 	return ret_val;
 }
