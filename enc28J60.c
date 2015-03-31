@@ -86,8 +86,8 @@ uint8_t enc28j60_comm_run_state(void)
  *
  * This function may be used to write any registers on the ENC28J60. The state must be in Ready_To_Send or complete			
  * This function always prepares the data as 1 bank select then 2 register.
- * \param[in] reg The register to write.
- * \param[in] data	the value to write to the register
+ * \param[in] ireg The register to write.
+ * \param[in] idata	the value to write to the register
  *
  * return: 0 on failure, 1 on success.
  *
