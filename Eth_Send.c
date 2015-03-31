@@ -4,9 +4,12 @@
  * Created: 2015-03-19 4:50:16 PM
  *  Author: Ashish
  *  Nathaniel Tammer
+ *  Mathew Holdom
  */ 
 
 #include <avr/io.h>
+#include "spi.h"
+#include "enc28J60.h"
 #include "Eth_Send.h"
 
 typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
@@ -27,6 +30,12 @@ uint8_t ETH_Send_comm()
 
 		break;
 		case ETH_Send_Start:
+			if (spi_request_attach()==1)	//request an spi attach to send via ETHERNET
+				{
+				ETH_Send_comm_data.state = Setup_TX_Packet;	//go to the next state
+				ret_val=1;
+				}
+			else ret_val =0;
 
 		break;
 		case Setup_TX_Packet:
@@ -69,6 +78,10 @@ uint8_t ETH_Send_comm()
 	return ret_val;
 }
 
+/************************************************************************/
+/* Helper functions                                                     */
+/************************************************************************/
+
 /**
 * ETH_Send_Release
 * \brief Changes the ethernet send state to Idle
@@ -86,4 +99,29 @@ uint8_t ETH_Send_Release(void) {
 		ret_val = 1;
 	}
 	return ret_val;
+}
+
+
+/************************************************************************//**
+*	ETH_send_Attach
+*	\brief Attaches enc28j60 to requesting sub systems
+*
+*	If the ETH_Send_Framework is in Idle state it attaches enc28j60. If
+*	it succeeds a 1 is returned and the state is changed, if it returns
+*	a 0 then it has failed and will try again.
+*
+*	returns a 0 on fail, returns a 1 on success.
+************************************************************************/
+uint8_t ETH_Send_Attach(void)
+{
+uint8_t return_val=0;
+if (ETH_Send_comm_data.state==Idle)
+{
+if (ENC28J60_coms_attach() ==1)
+{
+ETH_Send_comm_data.state=ETH_Send_Start;
+return_val=1;
+}
+}
+return return_val;
 }
