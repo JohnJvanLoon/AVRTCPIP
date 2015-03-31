@@ -126,7 +126,16 @@ return_val=1;
 }
 return return_val;
 }
-
+uint8_t ETH_Send_Comm_Complete(void);
+{
+	
+	
+}
+uint8_t ETH_Send_Write_REG(void);
+{
+	
+	
+}
 /************************************************************************//*
 *	ETH_Send_Complete
 * 	When compelte, return the value of 1, otherwise return the value of 0
