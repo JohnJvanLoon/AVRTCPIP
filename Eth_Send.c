@@ -126,6 +126,9 @@ return_val=1;
 }
 return return_val;
 }
+/********************************************************************/
+/* Write register and check for complete status
+/********************************************************************/
 uint8_t ETH_Send_Comm_Complete(void);
 {
 	
