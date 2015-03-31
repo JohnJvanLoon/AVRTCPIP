@@ -13,7 +13,7 @@
 #include "enc28J60.h"
 #include "Eth_Send.h"
 
-typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
+typedef enum {idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, complete} ETH_Send_comm_States;
 
 typedef struct
 {
@@ -27,7 +27,7 @@ uint8_t ETH_Send_comm()
 	uint8_t ret_val=0;
 	switch (ETH_Send_comm_data.state)
 	{
-		case Idle:
+		case idle:
 
 		break;
 		case ETH_Send_Start:
@@ -68,11 +68,11 @@ uint8_t ETH_Send_comm()
 		case S10:
 
 		break;
-		case Complete:
+		case complete:
 
 		break;
 		default:
-		ETH_Send_comm_data.state = Idle;
+		ETH_Send_comm_data.state = idle;
 		break;
 	}
 	return ret_val;
@@ -94,8 +94,8 @@ uint8_t ETH_Send_comm()
 
 uint8_t ETH_Send_Release(void) {
 	uint8_t ret_val = 0;
-	if (ETH_Send_comm_data.state == Complete) {
-		ETH_Send_comm_data.state = Idle;
+	if (ETH_Send_comm_data.state == complete) {
+		ETH_Send_comm_data.state = idle;
 		ret_val = 1;
 	}
 	return ret_val;
@@ -115,7 +115,7 @@ uint8_t ETH_Send_Release(void) {
 uint8_t ETH_Send_Attach(void)
 {
 uint8_t return_val=0;
-if (ETH_Send_comm_data.state==Idle)
+if (ETH_Send_comm_data.state==idle)
 {
 if (ENC28J60_coms_attach() ==1)
 {
@@ -125,17 +125,18 @@ return_val=1;
 }
 return return_val;
 }
-/********************************************************************/
-/* Write register and check for complete status
-/********************************************************************/
-uint8_t ETH_Send_Comm_Complete(void);
+/********************************************************************//**
+ * Write register and check for complete status
+ ********************************************************************/
+uint8_t ETH_Send_Comm_Complete(void)
 {
 	
-	
+return 0;	
 }
-uint8_t ETH_Send_Write_REG(void);
+
+uint8_t ETH_Send_Write_REG(void)
 {
-	
+	return 0;
 	
 }
 /************************************************************************//*
@@ -147,7 +148,7 @@ uint8_t ETH_Send_Write_REG(void);
 uint8_t ETH_send_complete(void)
 {
 	uint8_t iret_val = 0;
-	if (ETH_Send_comm_data.state==Complete)
+	if (ETH_Send_comm_data.state==complete)
 	{
 		iret_val = 1;
 	}
