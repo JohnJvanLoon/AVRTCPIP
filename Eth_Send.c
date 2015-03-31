@@ -134,10 +134,11 @@ uint8_t ETH_Send_Comm_Complete(void)
 return 0;	
 }
 
-uint8_t ETH_Send_Write_REG(void)
+inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
 {
-	return 0;
-	
+
+	return ENC28J60_write_register(reg, data);
+
 }
 /************************************************************************//*
 *	ETH_Send_Complete
