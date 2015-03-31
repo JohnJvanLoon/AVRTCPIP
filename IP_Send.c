@@ -139,7 +139,7 @@ uint16_t IP_send_length(uint16_t length)
 *
 * Returns the 16 bit checksum value.
 **/
-uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
+uint16_t IP_send_hdr_crc(uint16_t *pheader, uint8_t ilen)
 {
 /*	uint32_t header_chksum = 0;
 	
@@ -153,17 +153,17 @@ uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
 	header_chksum = ~header_chksum;	//Take ones compliment
 	return (uint16_t) header_chksum;	//Returns the 16 bit checksum
 */	
-		uint16_t hdr_chksum=0, temp;
+		uint16_t ihdr_chksum = 0, itemp;
 		
-		while (len>0)//Loop for length of header
+		while (ilen>0)//Loop for length of header
 		{
-			temp=*header;
-			hdr_chksum+=temp;
-			if (hdr_chksum<(temp)) hdr_chksum++; // check for overflow
-			header++;	//Go to next address in pointer
-			len--;
+			itemp=*pheader;
+			ihdr_chksum+=itemp;
+			if (ihdr_chksum<(itemp)) ihdr_chksum++; // check for overflow
+			pheader++;	//Go to next address in pointer
+			ilen--;
 		}
-		hdr_chksum = ~hdr_chksum;	//Take ones compliment
-		return (uint16_t) hdr_chksum;	//Returns the 16 bit checksum
+		ihdr_chksum = ~ihdr_chksum;	//Take ones compliment
+		return ihdr_chksum;	//Returns the 16 bit checksum
 		
 }
