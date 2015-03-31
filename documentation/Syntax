@@ -1,0 +1,23 @@
+Programming Prefixes:
+c – char
+i – int
+p – pointer
+str – string
+_t – type
+
+Examples:
+cdata = character named data
+idata = integeter named data
+pcdata = pointer to cdata
+
+Example Code Block:
+if (code) {
+Code block
+}
+
+Keep code, characters, integers, pointers, and functions in the lower case if possible.
+
+Doxygen syntax
+/// Allow for commenting on single lines
+/** to comment multiple lines 
+**/ end multiple line comment
