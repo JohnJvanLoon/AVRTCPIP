@@ -163,3 +163,48 @@ uint8_t ip_receive_release(void)
 	}
 	return ret_val;
 }
+
+uint8_t IP_Receive_Proto_Type (uint8_t *data)
+{
+	//Code Here
+}
+
+void IP_Receive_Update_CRC (uint8_t *data)
+{
+	//Code Here
+}
+
+void IP_Receive_Check_Options (uint8_t *data)
+{
+	//Code Here
+}
+
+void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
+{
+	//Code Here
+}
+
+uint8_t IP_Receive_Fragment (uint8_t *data)
+{
+	//Code Here
+}
+
+uint8_t IP_Receive_DataSize_ExtLength (uint8_t *data)
+{
+	//Code Here
+}
+
+void IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
+{
+	//Code Here
+}
+
+void IP_Receive_Discard_Packet (void)
+{
+	//Code Here
+}
+
+void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
+{
+	//Code Here
+}
