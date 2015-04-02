@@ -32,6 +32,7 @@ uint8_t IP_receive_run_states(void)
 		case Idle:	//S0 or Idle
 		
 		//Wait for attach
+		ip_receive_data.state = Attached;
 		
 		break;
 		case Attached:	//S1 or Attached
@@ -43,11 +44,12 @@ uint8_t IP_receive_run_states(void)
 		case S2:
 		
 		//Wait for receive complete
+		ip_receive_data.state = S3;
 		
 		break;
 		case S3:
 		
-		//Discard packet if wrong version, check checksum, set header length in structure
+		//Discard packet if wrong version, check checksum, set header length in structure, move to S4 if IPv4
 		
 		break;
 		case S4:
@@ -59,6 +61,7 @@ uint8_t IP_receive_run_states(void)
 		case S5:
 		
 		//Wait for receive complete
+		ip_receive_data.state = S6;
 		
 		break;
 		case S6:
@@ -70,11 +73,12 @@ uint8_t IP_receive_run_states(void)
 		case S7:
 		
 		//Wait for receive complete
+		ip_receive_data.state = S8;
 		
 		break;
 		case S8:
 		
-		//Calculate data size, extract total length, extract protocol, discard packet if fragment flag is set
+		//Calculate data size, extract total length, extract protocol, discard packet if fragment flag is set, otherwise move to S9
 		
 		break;
 		case S9:
@@ -86,6 +90,7 @@ uint8_t IP_receive_run_states(void)
 		case S10:
 		
 		//Wait for receive complete
+		ip_receive_data.state = S11;
 		
 		break;
 		case S11:
@@ -103,6 +108,7 @@ uint8_t IP_receive_run_states(void)
 		case S13:
 		
 		//Wait for receive complete
+		ip_receive_data.state = S14;
 		
 		break;
 		case S14:
@@ -120,6 +126,7 @@ uint8_t IP_receive_run_states(void)
 		case S16:
 		
 		//Wait for receive complete
+		ip_receive_data.state = S17;
 		
 		break;
 		case S17:
@@ -130,12 +137,12 @@ uint8_t IP_receive_run_states(void)
 		break;
 		case Complete:	//S18 or Complete
 		
-			//Discard if bad checksum
+		//Discard if bad checksum, otherwise go back to idle
 			
 		break;
 		default:	//Should never be here
 		
-			ip_receive_data.state = Idle;
+		ip_receive_data.state = Idle;
 			
 		break;
 	}
@@ -166,7 +173,9 @@ uint8_t ip_receive_release(void)
 
 uint8_t IP_Receive_Proto_Type (uint8_t *data)
 {
+	uint8_t proto = 0;
 	//Code Here
+	return proto;
 }
 
 void IP_Receive_Update_CRC (uint8_t *data)
@@ -186,12 +195,16 @@ void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
 
 uint8_t IP_Receive_Fragment (uint8_t *data)
 {
-	//Code Here
+	uint8_t is_frag = 0;
+	//Code here
+	return is_frag;
 }
 
 uint8_t IP_Receive_DataSize_ExtLength (uint8_t *data)
 {
+	uint8_t data_size = 0;
 	//Code Here
+	return data_size;
 }
 
 void IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
