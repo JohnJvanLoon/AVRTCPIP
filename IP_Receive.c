@@ -171,11 +171,22 @@ uint8_t ip_receive_release(void)
 	return ret_val;
 }
 
+/**
+* IP_Receive_Proto_Type
+* \brief Reads the protocol type from the IP header and returns it.
+* 
+* Reads the protocol type from the 10th byte in the IP header and returns it.  Must pass
+* a pointer to the current IP header being read in order to use this function.
+* 
+* \parameter data Pointer to the current IP header being read.
+* 
+* Returns the protocol type.
+**/
 uint8_t IP_Receive_Proto_Type (uint8_t *data)
 {
-	uint8_t proto = 0;
-	//Code Here
-	return proto;
+	data = data + 9;			//Go to 10th byte in IP header which is the protocol field.
+	uint8_t proto = *data;			//Set proto to value in protocol field.
+	return proto;			//Return proto.
 }
 
 void IP_Receive_Update_CRC (uint8_t *data)
