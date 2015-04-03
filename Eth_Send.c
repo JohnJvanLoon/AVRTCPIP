@@ -13,28 +13,28 @@
 #include "enc28J60.h"
 #include "Eth_Send.h"
 
-typedef enum {Idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, Complete} ETH_Send_comm_States;
+typedef enum {idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, complete} ETH_Send_comm_States;
 
 typedef struct
 {
 	ETH_Send_comm_States state;
 }ETH_Send_comm_struct;
 
-volatile ETH_Send_comm_struct ETH_Send_comm_data;
+volatile ETH_Send_comm_struct ETH_send_data;
 
-uint8_t ETH_Send_comm()
+uint8_t ETH_Send_run_state()
 {
 	uint8_t ret_val=0;
-	switch (ETH_Send_comm_data.state)
+	switch (ETH_send_data.state)
 	{
-		case Idle:
+		case idle:
 
 		break;
 		case ETH_Send_Start:
 			ret_val = ENC28J60_coms_attach();
 			if (ret_val==1)	//request an ENC28J60 attach to send via ETHERNET
 				{
-				ETH_Send_comm_data.state = Setup_TX_Packet;	//go to the next state
+				ETH_send_data.state = Setup_TX_Packet;	//go to the next state
 				}
 			else ret_val =0;
 		break;
@@ -68,11 +68,11 @@ uint8_t ETH_Send_comm()
 		case S10:
 
 		break;
-		case Complete:
+		case complete:
 
 		break;
 		default:
-		ETH_Send_comm_data.state = Idle;
+		ETH_send_data.state = idle;
 		break;
 	}
 	return ret_val;
@@ -94,8 +94,8 @@ uint8_t ETH_Send_comm()
 
 uint8_t ETH_Send_Release(void) {
 	uint8_t ret_val = 0;
-	if (ETH_Send_comm_data.state == Complete) {
-		ETH_Send_comm_data.state = Idle;
+	if (ETH_send_data.state == complete) {
+		ETH_send_data.state = idle;
 		ret_val = 1;
 	}
 	return ret_val;
@@ -115,23 +115,23 @@ uint8_t ETH_Send_Release(void) {
 uint8_t ETH_Send_Attach(void)
 {
 uint8_t return_val=0;
-if (ETH_Send_comm_data.state==Idle)
+if (ETH_send_data.state==idle)
 {
 if (ENC28J60_coms_attach() ==1)
 {
-ETH_Send_comm_data.state=ETH_Send_Start;
+ETH_send_data.state=ETH_Send_Start;
 return_val=1;
 }
 }
 return return_val;
 }
-/********************************************************************/
-/* Write register and check for complete status
-/********************************************************************/
-uint8_t ETH_Send_Comm_Complete(void);
+/********************************************************************//**
+ * Write register and check for complete status
+ ********************************************************************/
+uint8_t ETH_Send_Comm_Complete(void)
 {
 	
-	
+return 0;	
 }
 
 inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
@@ -149,9 +149,21 @@ inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
 uint8_t ETH_send_complete(void)
 {
 	uint8_t iret_val = 0;
-	if (ETH_Send_comm_data.state==Complete)
+	if (ETH_send_data.state==complete)
 	{
 		iret_val = 1;
 	}
 	return iret_val;
+}
+
+/************************************************************************//**
+ *  ETH_send_init
+ * \brief Initializes the ETH_send state diagram code
+ *
+ * This must be called prior to running the states.
+ *
+ ************************************************************************/
+void ETH_send_init(void)
+{
+	ETH_send_data.state=idle;
 }

@@ -28,6 +28,8 @@
 #include "Ethernet.h"
 #include "Timer.h"
 #include "IP_Send.h"
+#include "Eth_Receive.h"
+#include "Eth_Send.h"
 
 void init(void);
 void run_states(void);
@@ -53,6 +55,8 @@ void init(void)
 	spi_init();
 	ENC28J60_init(0,0,0);
 	spi_interrupt_on();
+	ETH_receive_init();
+	ETH_send_init();
 }
 
 void run_states(void)
@@ -80,7 +84,7 @@ void run_debug(void)
 			istate = 3;
 			break;
 		case 3: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 4;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
@@ -96,7 +100,7 @@ void run_debug(void)
 			istate = 6;
 			break;
 		case 6: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 7;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
@@ -112,7 +116,7 @@ void run_debug(void)
 			istate = 9;
 			break;
 		case 9: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 10;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
@@ -128,7 +132,7 @@ void run_debug(void)
 			istate = 12;
 			break;
 		case 12: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 13;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
