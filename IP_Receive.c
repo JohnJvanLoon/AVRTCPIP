@@ -13,6 +13,7 @@ typedef enum  {Idle, Attached, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S1
 typedef struct 
 {
 	ip_receive_states_t state;
+	uint8_t proto;
 }ip_recieve_struct_t;	
 
 volatile ip_recieve_struct_t ip_receive_data;
@@ -182,11 +183,13 @@ uint8_t ip_receive_release(void)
 * 
 * Returns the protocol type.
 **/
-uint8_t IP_Receive_Proto_Type (uint8_t *data)
+//uint8_t IP_Receive_Proto_Type (uint8_t *data)
+void IP_Receive_Proto_Type (uint8_t *data)
 {
 	data = data + 9;			//Go to 10th byte in IP header which is the protocol field.
-	uint8_t proto = *data;			//Set proto to value in protocol field.
-	return proto;			//Return proto.
+	ip_receive_data.proto = *data;			//Set protocol is IP Receive Structure
+	//uint8_t proto = *data;			//Set proto to value in protocol field.
+	//return proto;			//Return proto.
 }
 
 void IP_Receive_Update_CRC (uint8_t *data)

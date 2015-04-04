@@ -12,7 +12,8 @@ uint8_t IP_receive_run_states(void);
 uint8_t ip_receive_release (void);
 uint8_t ip_receive_request_attach(void);
 
-uint8_t IP_Receive_Proto_Type (uint8_t *data);
+//uint8_t IP_Receive_Proto_Type (uint8_t *data);
+void IP_Receive_Proto_Type (uint8_t *data);
 void IP_Receive_Update_CRC (uint8_t *data);
 void IP_Receive_Check_Options (uint8_t *data);
 void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP);
