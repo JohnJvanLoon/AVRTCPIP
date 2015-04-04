@@ -117,13 +117,13 @@ uint8_t ENC28J60_write_register(uint8_t ireg, uint8_t idata)	//takes the registe
  * return: 0 on failure, 1 on success.
  *
 *****************************************************************************/
-uint8_t ENC28J60_read_register(uint8_t reg)	//takes the register location argument and writes the data to it
+uint8_t ENC28J60_read_register(uint8_t ireg)	//takes the register location argument and writes the data to it
 {
-	uint8_t ret_val=0;
+	uint8_t iret_val=0;
 	if ((enc28j60_comm_data.state == ready_to_send)||(enc28j60_comm_data.state==complete)) {
 		enc28J60_buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
-		enc28J60_buffer[1] = (reg>>BANK_OFFSET); 
-		enc28J60_buffer[2] = (READ_CTRL_REG|(0x1F && reg)); //mask off 3 MSB and OR with OP code
+		enc28J60_buffer[1] = (ireg>>BANK_OFFSET); 
+		enc28J60_buffer[2] = (READ_CTRL_REG|(0x1F && ireg)); //mask off 3 MSB and OR with OP code
 		enc28J60_buffer[3] = 0; 
 		enc28j60_comm_data.state=S2A;
 		if (enc28J60_buffer[1]&0x02) { // banks 2 or 3
@@ -132,9 +132,9 @@ uint8_t ENC28J60_read_register(uint8_t reg)	//takes the register location argume
 			enc28j60_comm_data.flags=TWO_BYTE_REG_READ;
 		}
 
-		ret_val=1;
+		iret_val=1;
 	}
-	return ret_val;
+	return iret_val;
 }
 
 /** 
@@ -149,38 +149,38 @@ uint8_t ENC28J60_read_register(uint8_t reg)	//takes the register location argume
  * return: 0 on failure, 1 on success.
  *
 *****************************************************************************/
-uint8_t ENC28J60_retrieve_register_value(uint8_t *val)
+uint8_t ENC28J60_retrieve_register_value(uint8_t *ival)
 {
-	uint8_t ret_val=0;
+	uint8_t iret_val=0;
 	if (enc28j60_comm_data.flags&TWO_BYTE_REG_READ) { 
-		if (SPI_read_data( enc28J60_buffer, 2)==2) ret_val=1;
-		*val=enc28J60_buffer[1];
+		if (SPI_read_data( enc28J60_buffer, 2)==2) iret_val=1;
+		*ival=enc28J60_buffer[1];
 	} else {
-		if (SPI_read_data( enc28J60_buffer, 3)==3) ret_val=1;
-		*val=enc28J60_buffer[2];
+		if (SPI_read_data( enc28J60_buffer, 3)==3) iret_val=1;
+		*ival=enc28J60_buffer[2];
 	}
-	return ret_val;
+	return iret_val;
 }	
 
 /***************BITSET_ENC28_CTRL*********************************************
 *This function may be used to set bits in registers on the ENC28J60			*
 *****************************************************************************/
-void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
+void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t idata)
 {
-	uint8_t packet[2]; 
-	packet[0] = (BIT_FIELD_SET | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
-	packet[1] = data; 
-	spi_TXRX_data(sizeof(packet), packet); 
+	uint8_t ipacket[2]; 
+	ipacket[0] = (BIT_FIELD_SET | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
+	ipacket[1] = idata; 
+	spi_TXRX_data(sizeof(ipacket), ipacket); 
 }
 /***************BITCLR_ENC28_CTRL*********************************************
 *This function may be used to clear bits in registers on the ENC28J60			*
 *****************************************************************************/
-void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
+void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t idata)
 {
-	uint8_t packet[2];
-	packet[0] = (BIT_FIELD_CLR | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
-	packet[1] = data;
-	spi_TXRX_data(sizeof(packet), packet);
+	uint8_t ipacket[2];
+	ipacket[0] = (BIT_FIELD_CLR | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
+	ipacket[1] = idata;
+	spi_TXRX_data(sizeof(ipacket), ipacket);
 }
 
 /*******************MAC_Init*************************************************************************************************************
@@ -372,7 +372,7 @@ void ENC28J60_init(uint16_t RXsize, uint16_t TXsize, uint8_t Broadcast)
  * \param[in] ledB Flag indicating the operation of LEDB
  * \param[in] led_stretch determines led stretch time. Upper 4 bits are for LEDA, Lower are for LEDB
  */
-void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
+void ENC28J60_config_LEDs(uint8_t iledA, uint8_t iledB, uint8_t iled_stretch)
 {
 	
 }
@@ -388,26 +388,26 @@ void ENC28J60_config_LEDs(uint8_t ledA, uint8_t ledB, uint8_t led_stretch)
   */
 uint8_t ENC28J60_coms_release(void)
 {
-	int ret_val=0;
+	int iret_val=0;
 	if (enc28j60_comm_data.state==complete)
 		if (spi_release()) //if coms cleared an attempt to release the spi is made
 			{
-				ret_val=1;
+				iret_val=1;
 				enc28j60_comm_data.state=idle;
 				ENC28J60_PORT|=(1<<ENC28J60_CS); // to finish the data read / write operation. Reg read / write already do this.
 			}
-	return ret_val;//report success or failure
+	return iret_val;//report success or failure
 }
 
 uint8_t ENC28J60_coms_attach(void)
 {
-	uint8_t ret_val=0;
-	ret_val= spi_request_attach(); //sets value for attach
-	if ((ret_val==1) && (enc28j60_comm_data.state=idle))
+	uint8_t iret_val=0;
+	iret_val= spi_request_attach(); //sets value for attach
+	if ((iret_val==1) && (enc28j60_comm_data.state=idle))
 	{
 		enc28j60_comm_data.state=ready_to_send; //sets state to ready_to_send
 	}
-	return ret_val;
+	return iret_val;
 }
 
 void enc28j60_soft_reset(void)
