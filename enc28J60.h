@@ -249,6 +249,7 @@ uint8_t ENC28J60_write_register(uint8_t reg, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 uint8_t enc28j60_comm_run_state(void);
+uint8_t ENC28J60_retrieve_data(uint8_t len,uint8_t *data);
 void enc28j60_soft_reset(void); 
 
 #endif
