@@ -137,6 +137,10 @@ uint8_t ENC28J60_read_register(uint8_t ireg)	//takes the register location argum
 	return iret_val;
 }
 
+uint8_t ENC28J60_retrieve_data(uint8_t len,uint8_t *data)
+{
+	return SPI_read_data(data,len);
+}
 /** 
  * function ENC28J60_retrieve_register_value
  * \brief returns the enc28J60 register value
