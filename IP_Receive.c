@@ -3,7 +3,7 @@
  *
  * Created: 3/24/2015 11:21:06 AM
  *  Author: Jamison
- *  Nathaniel
+ *  Nathaniel, Ruoyu Liu, Roy Burnison
  */ 
 #include <avr/io.h>
 #include "IP_Receive.h"
@@ -12,6 +12,8 @@ typedef enum  {Idle, Attached, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S1
 
 typedef struct 
 {
+	uint8_t hlen;
+	uint8_t ver1;
 	ip_receive_states_t state;
 	uint8_t proto;
 }ip_recieve_struct_t;	
@@ -233,5 +235,8 @@ void IP_Receive_Discard_Packet (void)
 
 void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
 {
-	//Code Here
+	uint8_t temp1 = *data;
+	ip_receive_data.hlen=temp>>4;
+	ip_receive_data.ver1=temp&0F;
 }
+
