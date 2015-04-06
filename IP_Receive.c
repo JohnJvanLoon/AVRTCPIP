@@ -3,7 +3,7 @@
  *
  * Created: 3/24/2015 11:21:06 AM
  *  Author: Jamison
- *  Nathaniel, Ruoyu Liu, Roy Burnison
+ *  Nathaniel
  */ 
 #include <avr/io.h>
 #include "IP_Receive.h"
@@ -14,6 +14,7 @@ typedef struct
 {
 	uint8_t hlen;
 	uint8_t ver1;
+	uint8_t IP_options;
 	ip_receive_states_t state;
 	uint8_t proto;
 }ip_recieve_struct_t;	
@@ -201,7 +202,12 @@ void IP_Receive_Update_CRC (uint8_t *data)
 
 void IP_Receive_Check_Options (uint8_t *data)
 {
-	//Code Here
+	uint8_t temp1 = *data+20;
+	if (hlen>5)
+	ip_receive_data.IP_options=temp1>>20;
+	
+else (do nothing)
+;
 }
 
 void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
