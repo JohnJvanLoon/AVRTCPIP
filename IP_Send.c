@@ -10,7 +10,7 @@
 #include "ETH_send.h"
 #include "IP_Send.h"
 
-typedef enum {Idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, Complete}IP_send_comm_states;
+typedef enum {idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, complete}IP_send_comm_states;
 	
 typedef struct
 {
@@ -24,7 +24,7 @@ uint8_t IP_send_comm(void)
 	uint8_t ret_val=0;
 	switch (IP_send_comm_data.state)
 	{
-		case Idle:
+		case idle:
 
 		break;
 		case S0A:
@@ -60,7 +60,7 @@ uint8_t IP_send_comm(void)
 		case S10:
 
 		break;
-		case Complete:
+		case complete:
 
 		break;
 		default: // state is corrupt.
@@ -74,7 +74,7 @@ uint8_t IP_send_attach(void)
 {
 	uint8_t ret_val=0;
 	if (ETH_Send_Attach()){
-	if (IP_send_comm_data.state==Idle) {
+	if (IP_send_comm_data.state==idle) {
 		IP_send_comm_data.state=S0A;
 		ret_val=1;
 		// initialize SPI timer here.  For now it is not implemented.
@@ -101,10 +101,10 @@ uint8_t IP_Send_Release (void)
 	
 	if (ETH_Send_Release())
 	{
-		if (IP_send_comm_data.state!=Complete)
+		if (IP_send_comm_data.state!=complete)
 		{
 		}
-			IP_send_comm_data.state=Idle;
+			IP_send_comm_data.state=idle;
 			ret_val=1;
 	}
 
@@ -139,7 +139,7 @@ uint16_t IP_send_length(uint16_t length)
 *
 * Returns the 16 bit checksum value.
 **/
-uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
+uint16_t IP_send_hdr_crc(uint16_t *pheader, uint8_t ilen)
 {
 /*	uint32_t header_chksum = 0;
 	
@@ -153,17 +153,17 @@ uint16_t IP_send_HDR_CRC(uint16_t *header, uint8_t len)
 	header_chksum = ~header_chksum;	//Take ones compliment
 	return (uint16_t) header_chksum;	//Returns the 16 bit checksum
 */	
-		uint16_t hdr_chksum=0, temp;
+		uint16_t ihdr_chksum = 0, itemp;
 		
-		while (len>0)//Loop for length of header
+		while (ilen>0)//Loop for length of header
 		{
-			temp=*header;
-			hdr_chksum+=temp;
-			if (hdr_chksum<(temp)) hdr_chksum++; // check for overflow
-			header++;	//Go to next address in pointer
-			len--;
+			itemp=*pheader;
+			ihdr_chksum+=itemp;
+			if (ihdr_chksum<(itemp)) ihdr_chksum++; // check for overflow
+			pheader++;	//Go to next address in pointer
+			ilen--;
 		}
-		hdr_chksum = ~hdr_chksum;	//Take ones compliment
-		return (uint16_t) hdr_chksum;	//Returns the 16 bit checksum
+		ihdr_chksum = ~ihdr_chksum;	//Take ones compliment
+		return ihdr_chksum;	//Returns the 16 bit checksum
 		
 }

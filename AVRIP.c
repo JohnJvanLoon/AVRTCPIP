@@ -28,6 +28,8 @@
 #include "Ethernet.h"
 #include "Timer.h"
 #include "IP_Send.h"
+#include "Eth_Receive.h"
+#include "Eth_Send.h"
 
 void init(void);
 void run_states(void);
@@ -53,6 +55,8 @@ void init(void)
 	spi_init();
 	ENC28J60_init(0,0,0);
 	spi_interrupt_on();
+	ETH_receive_init();
+	ETH_send_init();
 }
 
 void run_states(void)
@@ -65,7 +69,7 @@ void run_debug(void)
 {
 	static uint8_t istate = 0;
 	uint8_t buf[10]; 
-	switch (state) {
+	switch (istate) {
 		case 0: // attach
 			if (spi_request_attach()) istate = 1;
 			break;
@@ -80,23 +84,23 @@ void run_debug(void)
 			istate = 3;
 			break;
 		case 3: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 4;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
 			break;
 		case 4:// send MAC address to ENC28J60
-			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			ENC28J60_PORT &=~ (1<<ENC28J60_CS);
 			istate = 5;
 			break;
 		case 5:
-			buf[0]=WRITE_CTRL_REG|(0x1F & MAADR1);
-			buf[1]=my_mac[5];
+			buf[0] = WRITE_CTRL_REG|(0x1F & MAADR1);
+			buf[1] = my_mac[5];
 			spi_TXRX_data(2,buf);
 			istate = 6;
 			break;
 		case 6: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 7;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
@@ -112,7 +116,7 @@ void run_debug(void)
 			istate = 9;
 			break;
 		case 9: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 10;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
@@ -128,7 +132,7 @@ void run_debug(void)
 			istate = 12;
 			break;
 		case 12: // wait for completion
-			if (SPI_CheckComplete()) {
+			if (SPI_checkcomplete()) {
 				istate = 13;
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 			}
