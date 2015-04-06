@@ -64,29 +64,35 @@ uint8_t ETH_receive_run_state(void)
 		ret_val=0;
 		break;
 		case ENC_Setup_Packet:
-	
+	// cs low
+	ENC28J60_write_register(EWRPTL, //what data?)//ewrpt (write)
+	timer_set_delay(ETH_RECEIVE_TIMER, 2)//wait for complete
 		break;
 		case Read_Data:
-
+	//read data (up to 10? byte)
+	//read more 
+	//cs high
 		break;
 		case S5:
 		if (SPI_checkcomplete()) ETH_receive_data.state=Read_SRCMAC;
 		break;
 		case Read_SRCMAC:
-
+		//6 bytes
+		//DATASHEET PAGE 34/96 'Source Address'
 		break;
 		case S7:
 		if (SPI_checkcomplete()) ETH_receive_data.state=Store_MAC;
 		break;
 		case Store_MAC:
-
+	//store mac where? 
 		break;
 		case S9:
 		if (SPI_checkcomplete()) ETH_receive_data.state=ENC_Release;
 		break;
 		case ENC_Release:
-		//read
+		//read (similar to states above)
 		ENC28J60_coms_release();
+		ETH_receive_data.state=Start_IP_Receive;
 		break;
 		case Start_IP_Receive:
 
@@ -111,22 +117,23 @@ uint8_t ETH_receive_run_state(void)
 			ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_Packet:
-
+			//is this the same as enc28j60 release? (probably not)
+			
 		break;
 		case S18a:
-			if (SPI_checkcomplete()) ETH_receive_data.state=Release_ENC;
-				else ETH_receive_data.state = Release_Packet;
+			if (SPI_checkcomplete()) {
+				ETH_receive_data.state=Release_ENC;
+				timer_set_delay(ETH_RECEIVE_TIMER, 2);
+			}				
+				
 			break;
 		case Release_ENC:
 			if (ENC28J60_coms_release()) {
 				ETH_receive_data.state = S20;
 				timer_set_delay(ETH_RECEIVE_TIMER, 2); // set up a short delay to allow other processes to attach to the spi sub system
 			}
+			ret_val = 1;
     		break;
-		case S20:
-			// Extra state. should be removed from state diagram
-			ETH_receive_data.state = idle;
-			break;
 		default:
 			ETH_receive_data.state = idle;
 		break;
