@@ -18,7 +18,7 @@
 #include "Eth_Receive.h"
 #include "Timer.h"
 
-typedef enum {idle, S1, S2, ENC_Setup_Packet, Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, ENC_Release, Start_IP_Receive, Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, Attach_Request, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
+typedef enum {idle, S1, S2, ENC_Setup_Packet, Read_Data, S5, Read_SRCMAC, S7, Read_Type, S9, ENC_Release, Start_IP_Receive, Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, Attach_Request, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
 
 typedef struct  
 {
@@ -49,42 +49,47 @@ uint8_t ETH_receive_run_state(void)
 			} 
 			break;
 			
-		case S1: //Check_New_Packet
+		case S1: //Read the Ethernet Input Register
 			ENC28J60_read_register(EIR);
 			ETH_receive_data.state = S2;
 			break;
-		case S2:
+		case S2://Packet Interrupt Flag = 1 - Set up Packet, = 0 - Release Enc
 		if (SPI_checkcomplete()){ 
 			ENC28J60_retrieve_register_value(&ret_val);
-			if (ret_val&PKTIF) {
+			if (ret_val&PKTIF) {	
 				ETH_receive_data.state = ENC_Setup_Packet;
 				} else ETH_receive_data.state = Release_ENC;
 			}
 		else ETH_receive_data.state = Release_ENC;
 		ret_val=0;
 		break;
-		case ENC_Setup_Packet:
-	// cs low
-	ENC28J60_write_register(EWRPTL, //what data?)//ewrpt (write)
-	timer_set_delay(ETH_RECEIVE_TIMER, 2)//wait for complete
+		case ENC_Setup_Packet: //place entire packet into SPI queue
+			uint8_t i; 
+			ENC28J60_PORT &=~(1<<ENC28J60_CS);
+			spi_TXRX_data(10, enc28J60_buffer); 
+				if (!(i = 0)) spi_TXRX_data(10,enc28J60_buffer);
+			ENC28J60_PORT |= (1<<ENC28J60_CS);
+			ETH_receive_data.state = Read_Data;
 		break;
-		case Read_Data:
-	//read data (up to 10? byte)
-	//read more 
-	//cs high
+		case Read_Data: //Read the Destination MAC
+			ENC28J60_PORT &=~(1<<ENC28J60_CS);
+			SPI_read_data(&enc28J60_buffer, 6);
+			ETH_receive_data.state = S5;
 		break;
 		case S5:
-		if (SPI_checkcomplete()) ETH_receive_data.state=Read_SRCMAC;
+			if (SPI_checkcomplete()) 
+			{
+				ENC28J60_PORT |= (1<<ENC28J60_CS);
+				ETH_receive_data.state=Read_SRCMAC;
+			}				
 		break;
 		case Read_SRCMAC:
 		//6 bytes
-		//DATASHEET PAGE 34/96 'Source Address'
 		break;
 		case S7:
 		if (SPI_checkcomplete()) ETH_receive_data.state=Store_MAC;
 		break;
-		case Store_MAC:
-	//store mac where? 
+		case Read_Type: 
 		break;
 		case S9:
 		if (SPI_checkcomplete()) ETH_receive_data.state=ENC_Release;
