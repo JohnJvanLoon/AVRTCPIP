@@ -9,6 +9,7 @@
 #ifndef IP_RECEIVE_H_
 #define IP_RECEIVE_H_
 
+void IP_Receive_Discard_Packet (void);
 
 
 #endif /* IP_RECEIVE_H_ */
