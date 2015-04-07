@@ -246,7 +246,7 @@ uint8_t IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
 
 void IP_Receive_Discard_Packet (void)
 {
-	//Code Here
+	ip_receive_data.state = Complete;
 }
 
 void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
