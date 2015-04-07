@@ -64,7 +64,6 @@ void spi_init(void)
 
 /************************************************************************/
 /* Case structure for SPI     
-/* parameters return value is defaulted at 0.
 * State of SPI is at Idle, then it is attached and SPI timer is initiated (not yet implemented).
 * Data is sent if spi data length is empty.
 * After data is cleared, SPI is back to complete which sends it back to Idle.
@@ -102,7 +101,7 @@ uint8_t spi_run_state(void)
 /************************************************************************/
 
 /************************************************************************/
-/* brief check if the state of the SPI is at complete  
+/* \brief check if the state of the SPI is at complete  
 *  Return 1 if completele otherwise return a 0, error
 /************************************************************************/
 
@@ -114,7 +113,7 @@ uint8_t SPI_checkcomplete(void)
 
 /************************************************************************//
  /*  spi_request_attach
- * brief Requests to attach to the SPI sub system
+ * \brief Requests to attach to the SPI sub system
  *
  *  Gives the SPI hardware to the requesting function if it is free.
  *  There is no actual checking of who sends data. The program must obey
@@ -137,10 +136,10 @@ uint8_t spi_request_attach(void)
 
 /************************************************************************//**
  *  spi_release
- * brief release of the SPI to the idle state
+ * \brief release of the SPI to the idle state
  *
  *  Gives the SPI hardware to the idle function if data finished
- *	returns 0 on fail, 1 on success.
+ *returns 0 on fail, 1 on success.
  ************************************************************************/
  
 uint8_t spi_release (void)
@@ -233,7 +232,7 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 
 /************************************************************************/
 /* Interrupt Service Routine (ISR) Serial Transfer Complete 
-*Initializes the SPI data register for data transfer.//
+* \On interrupt Initializes the SPI data register for data transfer.//
 *Increments the SPI data register. //
 *If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.//
 *If data register length is still greater than 0 after decrement reset data register to original state.//
@@ -260,7 +259,7 @@ int spi_clear_coms(void)
 
 /************************************************************************//
  /*  spi_wait
- * brief blocking call to wait for spi coms to complete. Not part of the state sequences.
+ * \brief blocking call to wait for spi coms to complete. Not part of the state sequences.
  *
  ************************************************************************/
  
@@ -271,7 +270,7 @@ void spi_wait(void)
 
 /************************************************************************//
  /*  spi_data_len
- * brief returns the number of bytes in the data queue waiting to be sent.
+ * \brief returns the number of bytes in the data queue waiting to be sent.
  *
  * returns the number of bytes in the queue to be sent.
  ************************************************************************/
