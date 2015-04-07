@@ -18,7 +18,7 @@ const unsigned char PROG_cmy_mac[6] PROGMEM={0x00,0x04,0xA3,0x03,0x04,0x05}; //0
 	
 
 typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, release_pkt_B, release_pkt_C, 
-	release_pkt_D, release_pkt_E, release_pkt_F, complete} enc28j60_comm_states;
+	release_pkt_D, release_pkt_E, release_pkt_F, release_pkt_G, release_pkt_H, complete} enc28j60_comm_states;
 //defines for the flags
 // set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
 #define TWO_BYTE_REG_READ 0x80
@@ -87,19 +87,40 @@ uint8_t ENC28J60_comm_run_state(void)
 				enc28j60_comm_data.state=release_pkt_C;
 			}
 			break;
-			case release_pkt_C: // Sending / receiving data to register
+		case release_pkt_C: // Sending / receiving data to register
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
 			spi_TXRX_data(2, &enc28J60_buffer[2]); // write read pointer low byte
 			enc28j60_comm_data.state=release_pkt_D;
 			break;
-			case release_pkt_D:
+		case release_pkt_D:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=release_pkt_E;
+			}
+			break;
+		case release_pkt_E: // Sending / receiving data to register
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			spi_TXRX_data(2, &enc28J60_buffer[4]); // write read pointer high byte
+			enc28j60_comm_data.state=release_pkt_F;
+			break;
+		case release_pkt_F:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=release_pkt_G;
+			}
+			break;
+		case release_pkt_G: // Decrement the packet count
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			ENC28J60_BITSET_CTRL(ECON2,(1<<PKTDEC)); // set the PKTDEC bit
+			enc28j60_comm_data.state=release_pkt_H;
+			break;
+		case release_pkt_H:
 			if (SPI_checkcomplete()) {
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 				enc28j60_comm_data.state=complete;
 			}
 			break;
 			
-			break;
 		case complete:
 			// ENC28J60_PORT|=(1<<ENC28J60_CS);	can not be put here. This would terminate a data transfer! Must be placed in the release function
 			break;
@@ -251,7 +272,7 @@ uint8_t ENC28J60_retrieve_register_value(uint8_t *val)
 /***************BITSET_ENC28_CTRL*********************************************
 *This function may be used to set bits in registers on the ENC28J60			*
 *****************************************************************************/
-void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
+void ENC28J60_BITSET_CTRL(uint8_t REGISTER, uint8_t data)
 {
 	uint8_t packet[2]; 
 	packet[0] = (BIT_FIELD_SET | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code
@@ -261,7 +282,7 @@ void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
 /***************BITCLR_ENC28_CTRL*********************************************
 *This function may be used to clear bits in registers on the ENC28J60			*
 *****************************************************************************/
-void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data)
+void ENC28J60_BITCLR_CTRL(uint8_t REGISTER, uint8_t data)
 {
 	uint8_t packet[2];
 	packet[0] = (BIT_FIELD_CLR | (0x1F && REGISTER)); //mask off 3 MSB and OR with OP code

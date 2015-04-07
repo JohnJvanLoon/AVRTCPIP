@@ -4,6 +4,7 @@
  * Created: 2015-03-05 10:42:48 AM
  *  Author: John
  *  Nathaniel Tammer, Ruoyu Liu, Roy Burnison
+ */
  
 /************************************************************************//**
 *Serial Peripheral Interface (SPI)
