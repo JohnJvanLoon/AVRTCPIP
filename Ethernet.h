@@ -12,19 +12,15 @@ extern uint8_t my_mac[6];
 
 uint8_t eth_get_ip(uint8_t *ip,uint8_t val);
 uint8_t eth_set_ip(uint8_t *ip,uint8_t val);
-uint8_t mac_get_ip(uint8_t *mac,uint8_t val);
-uint8_t mac_set_ip(uint8_t *mac,uint8_t val);
-uint16_t eth_set_source_CRC(uint16_t CS, uint8_t val);
-uint16_t eth_get_source_CRC(uint16_t CS, uint8_t val);
-uint8_t eth_set_source_protocol(uint8_t proto,uint8_t val);
-uint8_t eth_get_source_protocol(uint8_t proto,uint8_t val);
-uint16_t eth_set_source_length(uint16_t len,uint8_t val);
-uint16_t eth_get_source_length(uint16_t len,uint8_t val);
-uint16_t eth_set_transmit_CRC(uint16_t CS, uint8_t val);
-uint16_t eth_get_transmit_CRC(uint16_t CS, uint8_t val);
-uint8_t eth_set_transmit_protocol(uint8_t proto,uint8_t val);
-uint8_t eth_get_transmit_protocol(uint8_t proto,uint8_t val);
-uint16_t eth_set_transmit_length(uint16_t len,uint8_t val);
-uint16_t eth_get_transmit_length(uint16_t len,uint8_t val);
+uint8_t eth_get_ip(uint8_t *mac,uint8_t val);
+uint8_t eth_set_ip(uint8_t *mac,uint8_t val);
+uint16_t eth_set_CRC(uint16_t CS, uint8_t val);
+uint16_t eth_get_CRC(uint16_t CS, uint8_t val);
+uint8_t eth_set_protocol(uint16_t proto,uint8_t val);
+uint8_t eth_get_protocol(uint8_t *proto,uint8_t val);
+uint16_t eth_set_length(uint16_t len,uint8_t val);
+uint16_t eth_get_length(uint16_t *len,uint8_t val);
+uint8_t eth_set_mac(uint8_t *mac, uint8_t val);
+uint8_t eth_get_mac(uint8_t *mac,uint8_t val);
 
 #endif /* ETHERNET_H_ */

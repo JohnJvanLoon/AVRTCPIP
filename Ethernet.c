@@ -191,7 +191,7 @@ inline uint16_t eth_get_crc(uint16_t *crc, uint8_t ival)
 *
 * This function returns 1 if successful, 0 if not.
 */
-inline uint8_t eth_set_protocol(uint8_t iproto,uint8_t ival)
+inline uint8_t eth_set_protocol(uint16_t iproto,uint8_t ival)
 {
 	if(ival<ETHER_VALS)
 	{

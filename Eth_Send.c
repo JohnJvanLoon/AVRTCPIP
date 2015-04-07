@@ -36,7 +36,7 @@ volatile ETH_Send_comm_struct ETH_send_data;
 *  Writes destination MAC, source MAC, packet type, send packet.
 *  Wait function to be impletemented after transfer of packet.
 *  State set to complete which defaults back to Idle.
-/************************************************************************/
+************************************************************************/
 
 uint8_t ETH_Send_run_state()
 {
@@ -103,7 +103,7 @@ uint8_t ETH_Send_run_state()
 *  Ethernet state will only be changed to Idle if the Ethernet Send state is Complete.
 *  If state is neither complete nor Idle, state change will not take place.
 *  State change returns a 1 if successful, 0 if unsuccessful.
-/************************************************************************/
+************************************************************************/
 
 uint8_t ETH_Send_Release(void) {
 	uint8_t ret_val = 0;
@@ -146,11 +146,11 @@ uint8_t ETH_Send_Comm_Complete(void)
 	
 return 0;	
 }
-/********************************************************************//
-/* write to ethernet send buffer (EWRPT)
- /param uint8_t reg
- /param uint8_t data
- /********************************************************************//
+/********************************************************************//**
+ *  \brief write to ethernet send buffer (EWRPT)
+ * \param uint8_t reg
+ * \param uint8_t data
+ ********************************************************************/
 
 inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
 {

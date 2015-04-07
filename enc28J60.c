@@ -17,7 +17,8 @@ void ENC28J60_MAC_ADDRESS_Init(void);
 const unsigned char PROG_cmy_mac[6] PROGMEM={0x00,0x04,0xA3,0x03,0x04,0x05}; //00 04 A3 is the OUI for microchip that can be read from the PHID registers if needed
 	
 
-typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, complete} enc28j60_comm_states;
+typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, release_pkt_B, release_pkt_C, 
+	release_pkt_D, release_pkt_E, release_pkt_F, complete} enc28j60_comm_states;
 //defines for the flags
 // set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
 #define TWO_BYTE_REG_READ 0x80
@@ -27,12 +28,13 @@ typedef struct
 {
 	enc28j60_comm_states state;
 	uint8_t flags; 
+	uint16_t nxt_pkt_addr; // holds the next packet address in the enc28J60
 }
 enc28j60_comm_struct;
 
 volatile enc28j60_comm_struct enc28j60_comm_data; // global variable for the enc28j60 communication data 
 
-uint8_t enc28J60_buffer[5]; 
+uint8_t enc28J60_buffer[6]; 
 
 
 uint8_t ENC28J60_comm_run_state(void)
@@ -75,6 +77,27 @@ uint8_t ENC28J60_comm_run_state(void)
 					
 			break;
 		case release_pkt_A: // release the received packet by writing read pointer to next packet value and decrementing the packet count
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			spi_TXRX_data(2, enc28J60_buffer); // Write bank register
+			enc28j60_comm_data.state=release_pkt_B;
+			break;
+			case release_pkt_B:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=release_pkt_C;
+			}
+			break;
+			case release_pkt_C: // Sending / receiving data to register
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			spi_TXRX_data(2, &enc28J60_buffer[2]); // write read pointer low byte
+			enc28j60_comm_data.state=release_pkt_D;
+			break;
+			case release_pkt_D:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=complete;
+			}
+			break;
 			
 			break;
 		case complete:
@@ -559,6 +582,12 @@ uint8_t ENC28J60_pkt_release(void)
 		ret_val=1;
 		enc28j60_comm_data.state=release_pkt_A;
 		ENC28J60_PORT|=(1<<ENC28J60_CS); // raise incase this is from a data R/W operation
+		enc28J60_buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); // write bank register //mask off 3 MSB and OR with OP code
+		enc28J60_buffer[1] = (ERDPTL>>BANK_OFFSET);
+		enc28J60_buffer[2] = (WRITE_CTRL_REG|(0x1F && ERDPTL)); //write read pointer low byte
+		enc28J60_buffer[3] = (uint8_t)(enc28j60_comm_data.nxt_pkt_addr);
+		enc28J60_buffer[4] = (WRITE_CTRL_REG|(0x1F && ERDPTH)); //write read pointer high byte
+		enc28J60_buffer[5] = (uint8_t)(enc28j60_comm_data.nxt_pkt_addr>>8);
 	}
 	return ret_val;
 }

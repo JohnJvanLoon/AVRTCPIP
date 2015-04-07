@@ -23,10 +23,11 @@
 
 void ETH_receive_setup_pkt(void);
 
-typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A,ETH_Setup_Packet_B,ETH_Setup_Packet_C,
+typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A, ETH_Setup_Packet_B, ETH_Setup_Packet_C,
 	 Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, Read_Type, ENC_Release, Start_IP_Receive, 
 	Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, 
-	S17, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
+	S17, Release_Packet, S18a, Release_ENC, S20} 
+	ETH_Receive_comm_States;
 
 typedef struct  
 {
@@ -116,7 +117,7 @@ uint8_t ETH_receive_run_state(void)
 		break;
 
 		case Read_SRCMAC:
-			ENC28J60_read_data(6,data); //read next 6 bytes
+			ENC28J60_read_data(6,itemp); //read next 6 bytes
 			ETH_receive_data.state=S7;
 		break;
 		case S7:
@@ -127,7 +128,7 @@ uint8_t ETH_receive_run_state(void)
 			}		
 		break;
 		case Read_Type: 
-			ENC28J60_read_data(6,data);
+			ENC28J60_read_data(6,itemp);
 			ETH_receive_data.state=S9;
 		break;
 		case S9:

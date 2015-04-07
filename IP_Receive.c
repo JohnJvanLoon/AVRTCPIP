@@ -6,6 +6,7 @@
  *  Nathaniel
  */ 
 #include <avr/io.h>
+#include "Eth_Receive.h"
 #include "IP_Receive.h"
 #include "IP_Send.h"
 #include "eth.h"
@@ -224,7 +225,7 @@ uint8_t IP_Receive_Check_Fragment (uint8_t *data)
 	
 	uint16_t temp1 = (((uint16_t) (*data))& 0x1FFF); 
 	
-	if((temp!=0x0000)||(*data&0x20)) //check if temp1 (frag offset) is not 0 OR "more fragments flag" is not 0
+	if((temp1!=0x0000)||(*data&0x20)) //check if temp1 (frag offset) is not 0 OR "more fragments flag" is not 0
 	{
 		is_frag=1;
 	}
@@ -241,7 +242,7 @@ uint8_t IP_Receive_DataSize_ExtLength (uint8_t *data)
 
 uint8_t IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
 {
-	return ETH_receive_read_data(len, data);
+	return ETH_receive_read_data(data, len);
 }
 
 void IP_Receive_Discard_Packet (void)
