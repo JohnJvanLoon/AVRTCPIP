@@ -211,6 +211,8 @@
 #define FCEN0 0
 /// ******************* Bit Register ******************** END
 
+/// Receive vectors
+#define RECEIVE_OK 8
 
 //SPI Instruction Set (OPCODE)
 #define READ_CTRL_REG  0x00
@@ -230,9 +232,6 @@
 #define ENC28J60_MISO PB6 
 #define ENC28J60_SCK PB7
 #define ENC28J60_CS PB4
-#define RX_BUFFER_START 0x0000
-#define RX_BUFFER_END 0x1A05
-#define TX_BUFFER_START 0x1A06
 
 
 
@@ -248,8 +247,10 @@ uint8_t ENC28J60_retrieve_register_value(uint8_t *val);
 uint8_t ENC28J60_write_register(uint8_t reg, uint8_t data);
 void BITSET_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
 void BITCLR_ENC28J60_CTRL(uint8_t REGISTER, uint8_t data); 
-uint8_t enc28j60_comm_run_state(void);
-uint8_t ENC28J60_retrieve_data(uint8_t len,uint8_t *data);
-void enc28j60_soft_reset(void); 
+uint8_t ENC28J60_comm_run_state(void);
+void ENC28J60_soft_reset(void); 
+uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data);
+uint8_t ENC28J60_check_complete(void);
+uint8_t ENC28J60_comm_run_state(void);
 
 #endif
