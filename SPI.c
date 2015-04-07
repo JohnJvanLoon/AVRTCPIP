@@ -4,6 +4,7 @@
  * Created: 2015-03-05 10:42:48 AM
  *  Author: John
  *  Nathaniel Tammer, Ruoyu Liu, Roy Burnison
+ 
 /************************************************************************/
 /*Serial Peripheral Interface (SPI)
 *An interface bus used to send data between micro controllers
@@ -11,6 +12,7 @@
 *We are using this to talk between the ENC28j60 and the Atmega16
 *Separate data and clock lines and a select line to choose the device to talk to
 /************************************************************************/
+
 
 /************************************************************************/
 /* Includes                                                             */
@@ -138,7 +140,7 @@ uint8_t spi_request_attach(void)
  *  spi_release
  * \brief release of the SPI to the idle state
  *
- *  Gives the SPI hardware to the idle function if data finished
+ *Gives the SPI hardware to the idle function if data finished
  *returns 0 on fail, 1 on success.
  ************************************************************************/
  
@@ -159,8 +161,8 @@ uint8_t spi_release (void)
  *
  * Place data into SPI queue to be sent. The data is sent in order.
  *
- * \parameter len Number of bytes to send
- * \parameter data pointer to the data array to send
+ * \param len Number of bytes to send
+ * \param data pointer to the data array to send
  *
  * returns the number of bytes remaining in data to send. If len=10 and 4 bytes are moved into the spi buffer
  * the return value will be 6.
@@ -202,8 +204,8 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 * not read back any data that isn't new.  The amount of bytes that is read back will be returned.  If SPI is not
 * in the Complete state no data will be read and a value of 0 will be returned.
 *
-* \parameter data Pointer to the buffer where the data that is read will be stored.
-* \parameter len The number of bytes that will be read from the SPI buffer and stored.
+* \param data Pointer to the buffer where the data that is read will be stored.
+* \param len The number of bytes that will be read from the SPI buffer and stored.
 *
 * returns the number of bytes read from the SPI data buffer, if SPI was not in the Complete state then the
 * value returned will be zero.  Note, if there is less data available then requested in the len parameter
@@ -232,7 +234,7 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 
 /************************************************************************/
 /* Interrupt Service Routine (ISR) Serial Transfer Complete 
-* \On interrupt Initializes the SPI data register for data transfer.//
+*On interrupt Initializes the SPI data register for data transfer.//
 *Increments the SPI data register. //
 *If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.//
 *If data register length is still greater than 0 after decrement reset data register to original state.//
@@ -296,7 +298,7 @@ void spi_init_enc28j60(void)
 
 /************************************************************************//**
  *  spi_interrupt_on
- * \On interrupt enables the complete interrupt
+ * \brief interrupt enables the complete interrupt
  *
  ************************************************************************/
 void spi_interrupt_on(void)
