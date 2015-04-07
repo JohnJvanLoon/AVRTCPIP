@@ -223,10 +223,17 @@ void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
 	//Code Here
 }
 
-uint8_t IP_Receive_Fragment (uint8_t *data)
+uint8_t IP_Receive_Check_Fragment (uint8_t *data)
 {
 	uint8_t is_frag = 0;
-	//Code here
+	
+	uint16_t temp1 = (((uint16_t) (*data))& 0x1FFF); 
+	
+	if((temp!=0x0000)||(*data&0x20)) //check if temp1 (frag offset) is not 0 OR "more fragments flag" is not 0
+	{
+		is_frag=1;
+	}
+	
 	return is_frag;
 }
 
