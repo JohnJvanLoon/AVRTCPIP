@@ -26,7 +26,7 @@ void ETH_receive_setup_pkt(void);
 typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A, ETH_Setup_Packet_B, ETH_Setup_Packet_C,
 	 Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, Read_Type, ENC_Release, Start_IP_Receive, 
 	Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, 
-	S17, Release_Packet, S18a, Release_ENC, S20} 
+	S17, Release_Packet, S18a, Release_ENC} 
 	ETH_Receive_comm_States;
 
 typedef struct  
@@ -144,16 +144,15 @@ uint8_t ETH_receive_run_state(void)
 		break;
 		case Start_IP_Receive:
 			IP_receive_run_states();
-			ETH_receive_data.state=Start_ARP_Receive;
-
-		break;
-		case Start_ARP_Receive:
-
+			ETH_receive_data.state=S14;
 		break;
 		case Start_ICMP_Receive:
 
 		break;
 		case S14:
+			if (IP_Receive_complete()) {
+				ETH_receive_data.state=S17;
+			}
 
 		break;
 		case S15:
@@ -163,21 +162,18 @@ uint8_t ETH_receive_run_state(void)
 
 		break;
 		case S17:
-			ENC28J60_coms_attach();
-			ETH_receive_data.state = Release_Packet;
+			if (ENC28J60_coms_attach())	ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_Packet:
-			ENC28J60_coms_release();
-			//talk to the enc28j60 layer !!
-			ETH_receive_data.state = S18a;
+			if (ENC28J60_pkt_release())	ETH_receive_data.state = S18a;
 		break;
 		case S18a:
 			if (ENC28J60_check_complete()) ETH_receive_data.state=Release_ENC;
-				else ETH_receive_data.state = Release_Packet;
+				//else ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_ENC:
 			if (ENC28J60_coms_release()) {
-				ETH_receive_data.state = S20;
+				ETH_receive_data.state = idle;
 				timer_set_delay(ETH_RECEIVE_TIMER, 2); // set up a short delay to allow other processes to attach to the spi sub system
 			}
 			ret_val = 1;

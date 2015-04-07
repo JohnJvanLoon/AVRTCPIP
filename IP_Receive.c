@@ -256,3 +256,8 @@ void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
 	ip_receive_data.ver1=(*data)&0x0F;
 }
 
+uint8_t IP_Receive_complete(void)
+{
+	if (ip_receive_data.state == Complete) return 1;
+	else return 0;
+}
