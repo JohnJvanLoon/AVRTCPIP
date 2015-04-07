@@ -18,6 +18,8 @@
 #include "SPI.h"
 #include "Eth_Receive.h"
 #include "Timer.h"
+#include "Ethernet.h"
+#include "IP_Receive.h"
 
 void ETH_receive_setup_pkt(void);
 
@@ -83,6 +85,7 @@ uint8_t ETH_receive_run_state(void)
 			break;
 		case ETH_Setup_Packet_B:// read next packet pointer and status vectors
 			ETH_receive_setup_pkt(); // gets first 6 bytes of control vectors
+			ETH_receive_data.state = ETH_Setup_Packet_C;
 			break;
 		case ETH_Setup_Packet_C:// wait for enc to complete reading the 6 bytes then process
 			if (ENC28J60_check_complete()){
@@ -93,8 +96,8 @@ uint8_t ETH_receive_run_state(void)
 				else {
 					ETH_receive_data.state=S17;				
 					ENC28J60_coms_release();
+					  }
 				}
-			}
 			ret_val=0;
 			break;
 
@@ -104,32 +107,42 @@ uint8_t ETH_receive_run_state(void)
 		break;
 
 		case S5:
-			if (ENC28J60_check_complete()) 
-			{
+			if (ENC28J60_check_complete()) {
 				ENC28J60_read_data(6,itemp);
 				eth_set_mac(itemp, 1); 
 				ETH_receive_data.state=Read_SRCMAC;
-				// could make request for next 6 bytes right here and save a state. Makes the state diagram mixed.
 			}
 		break;
 
 		case Read_SRCMAC:
-		//6 bytes
+			ENC28J60_read_data(6,data); //read next 6 bytes
+			ETH_receive_data.state=S7;
 		break;
 		case S7:
-		if (ENC28J60_check_complete()) ETH_receive_data.state=Store_MAC;
+			if (ENC28J60_check_complete()) {	
+				ENC28J60_read_data(6,itemp);
+				eth_set_mac(itemp,2);
+				ETH_receive_data.state=Read_Type;
+			}		
 		break;
 		case Read_Type: 
+			ENC28J60_read_data(6,data);
+			ETH_receive_data.state=S9;
 		break;
 		case S9:
-		if (ENC28J60_check_complete()) ETH_receive_data.state=ENC_Release;
+			if (ENC28J60_check_complete()) {
+				ENC28J60_read_data(6,itemp);
+				eth_set_mac(itemp,3);
+				ETH_receive_data.state=ENC_Release;
+			}			
 		break;
 		case ENC_Release:
-		//read (similar to states above)
-		ENC28J60_coms_release();
-		ETH_receive_data.state=Start_IP_Receive;
+			ENC28J60_coms_release();
+			ETH_receive_data.state=Start_IP_Receive;
 		break;
 		case Start_IP_Receive:
+			IP_receive_run_states();
+			ETH_receive_data.state=Start_ARP_Receive;
 
 		break;
 		case Start_ARP_Receive:
@@ -152,10 +165,10 @@ uint8_t ETH_receive_run_state(void)
 			ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_Packet:
-			//is this the same as enc28j60 release? (probably not)
-			
+			ENC28J60_coms_release();
+			//talk to the enc28j60 layer !!
+			ETH_receive_data.state = S18a;
 		break;
-
 		case S18a:
 			if (ENC28J60_check_complete()) ETH_receive_data.state=Release_ENC;
 				else ETH_receive_data.state = Release_Packet;
