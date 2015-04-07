@@ -62,7 +62,7 @@ void init(void)
 void run_states(void)
 {
 		spi_run_state();
-		enc28j60_comm_run_state();	
+		ENC28J60_comm_run_state();	
 }
 
 void run_debug(void)

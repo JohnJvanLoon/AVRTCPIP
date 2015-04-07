@@ -19,7 +19,6 @@ typedef struct
 	ip_receive_states_t state;
 	uint8_t proto;
 	uint8_t CRC;
-	uint8_t hlen;
 }ip_recieve_struct_t;	
 
 volatile ip_recieve_struct_t ip_receive_data;
@@ -210,12 +209,7 @@ uint8_t IP_Receive_Update_CRC (uint8_t *data)
 
 void IP_Receive_Check_Options (uint8_t *data)
 {
-	uint8_t temp1 = *data+20;
-	if (hlen>5)
-	ip_receive_data.IP_options=temp1>>20;
 	
-else (do nothing)
-;
 }
 
 void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
@@ -249,8 +243,7 @@ void IP_Receive_Discard_Packet (void)
 
 void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
 {
-	uint8_t temp1 = *data;
-	ip_receive_data.hlen=temp>>4;
-	ip_receive_data.ver1=temp&0F;
+	ip_receive_data.hlen=(*data)>>4;
+	ip_receive_data.ver1=(*data)&0x0F;
 }
 

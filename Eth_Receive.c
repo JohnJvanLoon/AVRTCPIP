@@ -21,7 +21,8 @@
 
 void ETH_receive_setup_pkt(void);
 
-typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A,ETH_Setup_Packet_B,ETH_Setup_Packet_C, Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, ENC_Release, Start_IP_Receive, 
+typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A,ETH_Setup_Packet_B,ETH_Setup_Packet_C,
+	 Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, Read_Type, ENC_Release, Start_IP_Receive, 
 	Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, 
 	S17, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
 
@@ -67,7 +68,7 @@ uint8_t ETH_receive_run_state(void)
 		if (ENC28J60_check_complete()){ 
 			ENC28J60_retrieve_register_value(&ret_val);
 			if (ret_val&PKTIF) {	
-				ETH_receive_data.state = ENC_Setup_Packet;
+				ETH_receive_data.state = ETH_Setup_Packet;
 				} else ETH_receive_data.state = Release_ENC;
 			}
 		else ETH_receive_data.state = Release_ENC;
@@ -99,7 +100,7 @@ uint8_t ETH_receive_run_state(void)
 			break;
 
 		case Read_Data: //Read the Destination MAC
-				ENC28J60_read_data(6, data);
+				ENC28J60_read_data(6, itemp);
 				ETH_receive_data.state = S5;
 		break;
 
