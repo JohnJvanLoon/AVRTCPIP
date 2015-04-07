@@ -4,12 +4,13 @@
  * Created: 2015-03-05 10:42:48 AM
  *  Author: John
  *  Nathaniel Tammer, Ruoyu Liu, Roy Burnison
- */
-//Serial Peripheral Interface (SPI)
-// An interface bus used to send data between micro controllers
-// and small peripherals such as registers, sensors, and SD cars
-//We are using this to talk between the ENC28j60 and the Atmega16
-// Separate data and clock lines and a select line to choose the device to talk to
+/************************************************************************/
+/*Serial Peripheral Interface (SPI)
+*An interface bus used to send data between micro controllers
+*and small peripherals such as registers, sensors, and SD cars
+*We are using this to talk between the ENC28j60 and the Atmega16
+*Separate data and clock lines and a select line to choose the device to talk to
+/************************************************************************/
 
 /************************************************************************/
 /* Includes                                                             */
@@ -47,7 +48,9 @@ volatile spi_struct spi_data; // global variable for the SPI data information
 
 
 
-/*Initialize subsystem*/
+/************************************************************************/
+/* Initialize subsystem                                                 */
+/************************************************************************/
 
 
 void spi_init(void)
@@ -59,8 +62,10 @@ void spi_init(void)
 	
 }
 
+/************************************************************************/
+/* Case structure for SPI                                               */
+/************************************************************************/
 
-/*Case structure for SPI*/
 
 uint8_t spi_run_state(void)
 {
@@ -92,7 +97,8 @@ uint8_t spi_run_state(void)
 /************************************************************************/
 
 /************************************************************************/
-// brief check if the state of the SPI is at complete                   */ 
+/* brief check if the state of the SPI is at complete  
+*  Return 1 if completele otherwise return a 0, error
 /************************************************************************/
 
 uint8_t SPI_checkcomplete(void)
@@ -101,16 +107,16 @@ uint8_t SPI_checkcomplete(void)
 	else return 0;
 }
 
-/************************************************************************//**
- *  spi_request_attach
- * \brief Requests to attach to the SPI sub system
+/************************************************************************//
+ /*  spi_request_attach
+ * brief Requests to attach to the SPI sub system
  *
  *  Gives the SPI hardware to the requesting function if it is free.
  *	There is no actual checking of who sends data. The program must obey
  *  the rules to first get attached then send data.
  *
  * returns 0 on fail, 1 on success.
- ************************************************************************/
+ /************************************************************************/
 uint8_t spi_request_attach(void)
 {
 	uint8_t ret_val=0;
@@ -180,8 +186,8 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 
 }
 
-/**
-* SPI_read_data
+/**************************************************************************/
+/* SPI_read_data
 * \brief Reads new data from the SPI data buffer and returns the amount of bytes read.
 *
 * This function reads new data from the SPI data buffer and stores it in a buffer who's starting address is
@@ -195,7 +201,7 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 * returns the number of bytes read from the SPI data buffer, if SPI was not in the Complete state then the
 * value returned will be zero.  Note, if there is less data available then requested in the len parameter
 * only the amount of available bytes will be returned.
-**/
+/************************************************************************/
 
 uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 {
@@ -214,12 +220,17 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 	return num_bytes;		//Return the number of bytes read
 }
 
-/*Interrupt Service Routine (ISR) Serial Transfer Complete*/
-//*Initializes the SPI data register for data transfer.//
-//*Increments the SPI data register. //
-//*If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.//
-//*If data register length is still greater than 0 after decrement reset data register to original state.//
-//*If none of the above go to state complete.//
+
+
+
+/************************************************************************/
+/* Interrupt Service Routine (ISR) Serial Transfer Complete 
+*Initializes the SPI data register for data transfer.//
+*Increments the SPI data register. //
+*If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.//
+*If data register length is still greater than 0 after decrement reset data register to original state.//
+*If none of the above go to state complete.//
+/************************************************************************/
 
 ISR(SPI_STC_vect)
 {
@@ -239,9 +250,9 @@ int spi_clear_coms(void)
 	return 0;
 }
 
-/************************************************************************//**
- *  spi_wait
- * \brief blocking call to wait for spi coms to complete. Not part of the state sequences.
+/************************************************************************//
+ /*  spi_wait
+ * brief blocking call to wait for spi coms to complete. Not part of the state sequences.
  *
  ************************************************************************/
 void spi_wait(void)
@@ -249,9 +260,9 @@ void spi_wait(void)
 	while(!(SPSR & (1<<SPIF)));
 }
 
-/************************************************************************//**
- *  spi_data_len
- * \brief returns the number of bytes in the data queue waiting to be sent.
+/************************************************************************//
+ /*  spi_data_len
+ * brief returns the number of bytes in the data queue waiting to be sent.
  *
  * returns the number of bytes in the queue to be sent.
  ************************************************************************/
@@ -260,11 +271,11 @@ uint8_t spi_data_len(void)
 	return spi_data.len;
 }
 
-/*
-Initialization of the SPI on the enc28j60 .
+/************************************************************************/
+/*Initialization of the SPI on the enc28j60 .
 The enc28j60 only works in 0,0 mode so there is no CPOL or CPHA set.
 Set up the atmega16 as master, and enable the SPI interrupt
-*/
+/************************************************************************/
 
 void spi_init_enc28j60(void)
 {	
