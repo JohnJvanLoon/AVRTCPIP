@@ -122,6 +122,7 @@ uint8_t SPI_checkcomplete(void)
  *
  * returns 0 on fail, 1 on success.
  /************************************************************************/
+ 
 uint8_t spi_request_attach(void)
 {
 	uint8_t ret_val=0;
@@ -141,6 +142,7 @@ uint8_t spi_request_attach(void)
  *  Gives the SPI hardware to the idle function if data finished
  *	returns 0 on fail, 1 on success.
  ************************************************************************/
+ 
 uint8_t spi_release (void)
 {
 	uint8_t ret_val=0;
@@ -164,6 +166,7 @@ uint8_t spi_release (void)
  * returns the number of bytes remaining in data to send. If len=10 and 4 bytes are moved into the spi buffer
  * the return value will be 6.
  ************************************************************************/
+ 
 uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 {
 	spi_data.r_index = spi_data.w_index;	//Set read pointer to write pointer
@@ -260,6 +263,7 @@ int spi_clear_coms(void)
  * brief blocking call to wait for spi coms to complete. Not part of the state sequences.
  *
  ************************************************************************/
+ 
 void spi_wait(void)
 {
 	while(!(SPSR & (1<<SPIF)));
@@ -271,6 +275,7 @@ void spi_wait(void)
  *
  * returns the number of bytes in the queue to be sent.
  ************************************************************************/
+ 
 uint8_t spi_data_len(void)
 {
 	return spi_data.len;
