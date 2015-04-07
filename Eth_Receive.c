@@ -10,6 +10,7 @@
  *                Dennis Hasse
  *                Jameson Guther
  *                Julie Anne Looy
+ *				  John van Loon
  */ 
 
 #include <avr/io.h>
@@ -18,14 +19,19 @@
 #include "Eth_Receive.h"
 #include "Timer.h"
 
-typedef enum {idle, S1, S2, ENC_setup_packet, read_data, S5, read_SRCMAC, S7, store_MAC, S9, ENC_release, start_IP_receive, start_ARP_receive, start_ICMP_receive, S14, S15, S16, attach_request, release_packet, S18a, release_ENC, S20} ETH_receive_comm_states;
+void ETH_receive_setup_pkt(void);
+
+typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A,ETH_Setup_Packet_B,ETH_Setup_Packet_C, Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, ENC_Release, Start_IP_Receive, 
+	Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, 
+	S17, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
 
 typedef struct  
 {
-	ETH_receive_comm_states state;
-}ETH_receive_comm_struct;
+	ETH_Receive_comm_States state;
+	//uint8_t data[10];
+}ETH_Receive_comm_struct;
 
-volatile ETH_receive_comm_struct ETH_receive_data;
+volatile ETH_Receive_comm_struct ETH_receive_data;
 /**************************************************************************************************//**
 * ETH_receive_run_state
 * Allows packets to be received as per state diagram
@@ -37,7 +43,8 @@ volatile ETH_receive_comm_struct ETH_receive_data;
 **************************************************************************************************/
 uint8_t ETH_receive_run_state(void)
 {
-	uint8_t iret_val=0;
+	uint8_t ret_val=0;
+	static uint8_t inxt_pkt_ptr[2];
 	switch (ETH_receive_data.state)
 	{
 		case idle: // Request attach to enc28j60
@@ -49,52 +56,78 @@ uint8_t ETH_receive_run_state(void)
 			} 
 			break;
 			
-		case S1: //Check_New_Packet
+		case S1: //Read the Ethernet Input Register
 			ENC28J60_read_register(EIR);
 			ETH_receive_data.state = S2;
 			break;
-		case S2:
-		if (SPI_checkcomplete()){ 
-			ENC28J60_retrieve_register_value(&iret_val);
-			if (iret_val&PKTIF) {
-				ETH_receive_data.state = ENC_setup_packet;
-				} else ETH_receive_data.state = release_ENC;
-			}
-		else ETH_receive_data.state = release_ENC;
-		iret_val=0;
-		break;
-		case ENC_setup_packet:
-	
-		break;
-		case read_data:
 
+		case S2://Packet Interrupt Flag = 1 - Set up Packet, = 0 - Release Enc
+		if (SPI_checkcomplete()){ 
+			ENC28J60_retrieve_register_value(&ret_val);
+			if (ret_val&PKTIF) {	
+				ETH_receive_data.state = ENC_Setup_Packet;
+				} else ETH_receive_data.state = Release_ENC;
+			}
+		else ETH_receive_data.state = Release_ENC;
+		ret_val=0;
+		break;
+
+		case ETH_Setup_Packet: // Perform enc28j60 initialization for a new packet
+			// first release ENC to be able to switch from register to data
+			if (ENC28J60_coms_release()) ETH_receive_data.state=ETH_Setup_Packet_A;		
+			break;
+		case ETH_Setup_Packet_A: // reconnect to ENC
+			if (ENC28J60_coms_attach()) ETH_receive_data.state=ETH_Setup_Packet_B;
+			break;
+		case ETH_Setup_Packet_B:// read next packet pointer and status vectors
+			ETH_receive_setup_pkt();
+			break;
+		case ETH_Setup_Packet_C:// wait for enc to complete reading the 6 bytes then process
+			if (ENC28J60_check_complete()){
+				ENC28J60_read_data(2, inxt_pkt_ptr);
+				ENC28J60_read_data(1, &ret_val); // do not care
+				ENC28J60_read_data(1, &ret_val); // MSB is the receive OK flag
+				if (ret_val&(1<<RECEIVE_OK)) ETH_receive_data.state=Read_Data;
+				else {
+					ETH_receive_data.state=S17;				
+					ENC28J60_coms_release();
+				}
+			}
+			ret_val=0;
+			break;
+
+		case Read_Data: //Read the Destination MAC
+// needs to be SPI_TXRX... first			SPI_read_data(&enc28J60_buffer, 6);
+// work continues here
+			ETH_receive_data.state = S5;
 		break;
 		case S5:
-		if (SPI_checkcomplete()) ETH_receive_data.state=read_SRCMAC;
+			if (ENC28J60_check_complete()) ETH_receive_data.state=Read_SRCMAC;
 		break;
-		case read_SRCMAC:
 
+		case Read_SRCMAC:
+		//6 bytes
 		break;
 		case S7:
-		if (SPI_checkcomplete()) ETH_receive_data.state=store_MAC;
+		if (ENC28J60_check_complete()) ETH_receive_data.state=Store_MAC;
 		break;
-		case store_MAC:
-
+		case Read_Type: 
 		break;
 		case S9:
-		if (SPI_checkcomplete()) ETH_receive_data.state=ENC_release;
+		if (ENC28J60_check_complete()) ETH_receive_data.state=ENC_Release;
 		break;
-		case ENC_release:
-		//read
+		case ENC_Release:
+		//read (similar to states above)
 		ENC28J60_coms_release();
+		ETH_receive_data.state=Start_IP_Receive;
 		break;
-		case start_IP_receive:
+		case Start_IP_Receive:
 
 		break;
-		case start_ARP_receive:
+		case Start_ARP_Receive:
 
 		break;
-		case start_ICMP_receive:
+		case Start_ICMP_Receive:
 
 		break;
 		case S14:
@@ -106,32 +139,31 @@ uint8_t ETH_receive_run_state(void)
 		case S16:
 
 		break;
-		case attach_request:
+		case S17:
 			ENC28J60_coms_attach();
-			ETH_receive_data.state = release_packet;
+			ETH_receive_data.state = Release_Packet;
 			break;
-		case release_packet:
-
+		case Release_Packet:
+			//is this the same as enc28j60 release? (probably not)
+			
 		break;
+
 		case S18a:
-			if (SPI_checkcomplete()) ETH_receive_data.state=release_ENC;
-				else ETH_receive_data.state = release_packet;
+			if (ENC28J60_check_complete()) ETH_receive_data.state=Release_ENC;
+				else ETH_receive_data.state = Release_Packet;
 			break;
-		case release_ENC:
+		case Release_ENC:
 			if (ENC28J60_coms_release()) {
 				ETH_receive_data.state = S20;
 				timer_set_delay(ETH_RECEIVE_TIMER, 2); // set up a short delay to allow other processes to attach to the spi sub system
 			}
+			ret_val = 1;
     		break;
-		case S20:
-			// Extra state. should be removed from state diagram
-			ETH_receive_data.state = idle;
-			break;
 		default:
 			ETH_receive_data.state = idle;
 		break;
 	}
-	return iret_val;
+	return ret_val;
 }
 
 /************************************************************************//**
@@ -145,4 +177,10 @@ uint8_t ETH_receive_run_state(void)
 void ETH_receive_init(void)
 {
 	ETH_receive_data.state=idle;
+}
+
+void ETH_receive_setup_pkt(void)
+{
+	uint8_t data[6];
+	ENC28J60_read_data(6, data);
 }
