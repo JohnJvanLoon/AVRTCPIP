@@ -49,7 +49,7 @@ volatile spi_struct spi_data; // global variable for the SPI data information
 
 
 /************************************************************************/
-/* Initialize SPI subsystem                                                 */
+/* Initialize SPI subsystem                                             */
 /************************************************************************/
 
 
