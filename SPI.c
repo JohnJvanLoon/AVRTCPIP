@@ -3,9 +3,17 @@
  *
  * Created: 2015-03-05 10:42:48 AM
  *  Author: John
- *  Nathaniel Tammer
+ *  Nathaniel Tammer, Ruoyu Liu, Roy Burnison
  */
+//Serial Peripheral Interface (SPI)
+// An interface bus used to send data between micro controllers
+// and small peripherals such as registers, sensors, and SD cars
+//We are using this to talk between the ENC28j60 and the Atmega16
+// Separate data and clock lines and a select line to choose the device to talk to
 
+/************************************************************************/
+/* Includes                                                             */
+/************************************************************************/
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -36,14 +44,23 @@ typedef struct
 
 volatile spi_struct spi_data; // global variable for the SPI data information
 
+
+
+
+/*Initialize subsystem*/
+
+
 void spi_init(void)
 {
 	spi_data.r_index=0;
 	spi_data.w_index=0;
 	spi_data.len=0;
 	spi_data.state=idle;
-	// Initialize SPI subsystem
+	
 }
+
+
+/*Case structure for SPI*/
 
 uint8_t spi_run_state(void)
 {
@@ -56,14 +73,14 @@ uint8_t spi_run_state(void)
 		case attached:
 		//if (timer_check_delay(0)==0) spi_data.state=Idle; // due to time out
 		break;
-		case send:
+		case send:  //data sent
 		if (spi_data.len == 0) spi_data.state = complete;
 		break;
 		case complete:
 		// Do nothing. Helper functions only. Could have a time out here as well
 		break;
 		default: // state is corrupt.
-		spi_data.state = idle;
+		spi_data.state = idle; //default to idle
 		break;
 	}
 	
@@ -72,6 +89,10 @@ uint8_t spi_run_state(void)
 
 /************************************************************************/
 /* Helper functions                                                     */
+/************************************************************************/
+
+/************************************************************************/
+// brief check if the state of the SPI is at complete                   */ 
 /************************************************************************/
 
 uint8_t SPI_checkcomplete(void)
@@ -102,6 +123,13 @@ uint8_t spi_request_attach(void)
 	return ret_val;
 }
 
+/************************************************************************//**
+ *  spi_release
+ * \brief release of the SPI to the idle state
+ *
+ *  Gives the SPI hardware to the idle function if data finished
+ *	returns 0 on fail, 1 on success.
+ ************************************************************************/
 uint8_t spi_release (void)
 {
 	uint8_t ret_val=0;
@@ -186,18 +214,25 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 	return num_bytes;		//Return the number of bytes read
 }
 
+/*Interrupt Service Routine (ISR) Serial Transfer Complete*/
+//*Initializes the SPI data register for data transfer.//
+//*Increments the SPI data register. //
+//*If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.//
+//*If data register length is still greater than 0 after decrement reset data register to original state.//
+//*If none of the above go to state complete.//
+
 ISR(SPI_STC_vect)
 {
 		spi_data.data[spi_data.w_index]=SPI_DATA_REG;
 		spi_data.w_index++;
 		if (spi_data.w_index>=SPI_BUFFER_SIZE) spi_data.w_index=0;
-		spi_data.len--;
+		spi_data.len--; //decrement length of SPI data queue
 		if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.w_index];
 
 		else spi_data.state=complete;	
 }
 
-//unfinished helper functions created for the sake of deffinitions
+//unfinished helper functions created for the sake of definitions
 
 int spi_clear_coms(void)
 {
@@ -241,7 +276,7 @@ void spi_init_enc28j60(void)
 
 /************************************************************************//**
  *  spi_interrupt_on
- * \brief enables the spi complete interrupt
+ * \On interrupt enables the complete interrupt
  *
  ************************************************************************/
 void spi_interrupt_on(void)
