@@ -9,10 +9,13 @@
 #include "SPI.h"
 #include "enc28J60.h"
 #include "Timer.h"
+#include <avr/pgmspace.h>
 
 void ENC28J60_MAC_Init(void); 	//creates initialization function
 void ENC28J60_ETHERNET_Init(void);
-
+void ENC28J60_MAC_ADDRESS_Init(void);
+const unsigned char PROG_cmy_mac[6] PROGMEM={0x00,0x04,0xA3,0x03,0x04,0x05}; //00 04 A3 is the OUI for microchip that can be read from the PHID registers if needed
+	
 
 typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, complete} enc28j60_comm_states;
 //defines for the flags
@@ -380,6 +383,51 @@ void ENC28J60_MAC_Init(void)
 	 while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	 ENC28J60_PORT|=(1<<ENC28J60_CS); 
  }
+ void ENC28J60_MAC_ADDRESS_Init(void)
+{
+	//store MAADR1
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MAADR1));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=pgm_read_byte(&(PROG_cmy_mac[5]));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	//store MAADR2
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MAADR2));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=pgm_read_byte(&(PROG_cmy_mac[4]));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	//store MAADR3
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MAADR3));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=pgm_read_byte(&(PROG_cmy_mac[3]));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	//store MAADR4
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MAADR4));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=pgm_read_byte(&(PROG_cmy_mac[2]));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	//store MAADR5
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MAADR5));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=pgm_read_byte(&(PROG_cmy_mac[1]));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+	//store MAADR6
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & MAADR6));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=pgm_read_byte(&(PROG_cmy_mac[0]));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+}
 /** 
  * function ENC28J60_init
  * \brief Initialization of the enc28J60
