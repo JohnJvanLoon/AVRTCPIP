@@ -7,13 +7,19 @@
  */ 
 #include <avr/io.h>
 #include "IP_Receive.h"
+#include "IP_Send.h"
 
 typedef enum  {Idle, Attached, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, Complete} ip_receive_states_t;
 
 typedef struct 
 {
+	uint8_t hlen;
+	uint8_t ver1;
+	uint8_t IP_options;
 	ip_receive_states_t state;
 	uint8_t proto;
+	uint8_t CRC;
+	uint8_t hlen;
 }ip_recieve_struct_t;	
 
 volatile ip_recieve_struct_t ip_receive_data;
@@ -192,14 +198,24 @@ void IP_Receive_Proto_Type (uint8_t *data)
 	//return proto;			//Return proto.
 }
 
-void IP_Receive_Update_CRC (uint8_t *data)
-{
-	//Code Here
+uint8_t IP_Receive_Update_CRC (uint8_t *data)
+{	
+	uint16_t x = IP_send_hdr_crc((uint16_t*)data, ip_receive_data.hlen);
+	if (x == 0x0000)
+	{
+		return 1;
+	}
+	else return 0;
 }
 
 void IP_Receive_Check_Options (uint8_t *data)
 {
-	//Code Here
+	uint8_t temp1 = *data+20;
+	if (hlen>5)
+	ip_receive_data.IP_options=temp1>>20;
+	
+else (do nothing)
+;
 }
 
 void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
@@ -233,5 +249,8 @@ void IP_Receive_Discard_Packet (void)
 
 void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
 {
-	//Code Here
+	uint8_t temp1 = *data;
+	ip_receive_data.hlen=temp>>4;
+	ip_receive_data.ver1=temp&0F;
 }
+
