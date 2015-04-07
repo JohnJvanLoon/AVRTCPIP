@@ -63,7 +63,12 @@ void spi_init(void)
 }
 
 /************************************************************************/
-/* Case structure for SPI                                               */
+/* Case structure for SPI     
+/* parameters return value is defaulted at 0.
+* State of SPI is at Idle, then it is attached and SPI timer is initiated (not yet implemented).
+* Data is sent if spi data length is empty.
+* After data is cleared, SPI is back to complete which sends it back to Idle.
+* return value is set to 1.
 /************************************************************************/
 
 
@@ -112,7 +117,7 @@ uint8_t SPI_checkcomplete(void)
  * brief Requests to attach to the SPI sub system
  *
  *  Gives the SPI hardware to the requesting function if it is free.
- *	There is no actual checking of who sends data. The program must obey
+ *  There is no actual checking of who sends data. The program must obey
  *  the rules to first get attached then send data.
  *
  * returns 0 on fail, 1 on success.
@@ -131,7 +136,7 @@ uint8_t spi_request_attach(void)
 
 /************************************************************************//**
  *  spi_release
- * \brief release of the SPI to the idle state
+ * brief release of the SPI to the idle state
  *
  *  Gives the SPI hardware to the idle function if data finished
  *	returns 0 on fail, 1 on success.
