@@ -17,7 +17,7 @@ void ENC28J60_MAC_ADDRESS_Init(void);
 const unsigned char PROG_cmy_mac[6] PROGMEM={0x00,0x04,0xA3,0x03,0x04,0x05}; //00 04 A3 is the OUI for microchip that can be read from the PHID registers if needed
 	
 
-typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, complete} enc28j60_comm_states;
+typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, complete} enc28j60_comm_states;
 //defines for the flags
 // set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
 #define TWO_BYTE_REG_READ 0x80
@@ -73,6 +73,9 @@ uint8_t ENC28J60_comm_run_state(void)
 			
 		case S3: // state used for enc28j60 data memory access
 					
+			break;
+		case release_pkt_A: // release the received packet by writing read pointer to next packet value and decrementing the packet count
+			
 			break;
 		case complete:
 			// ENC28J60_PORT|=(1<<ENC28J60_CS);	can not be put here. This would terminate a data transfer! Must be placed in the release function
@@ -540,3 +543,22 @@ void ENC28J60_soft_reset(void)
 	cli();
 }
 
+/** 
+ * function ENC28J60_prep_pkt_release
+ * \brief prepares the current packet to be released.
+ *
+ * Moves the read pointer to the next packet value
+ *
+ * returns 1 if the prep is started, 0 if not
+  */
+uint8_t ENC28J60_pkt_release(void)
+{
+	uint8_t ret_val=0;
+	
+	if ((enc28j60_comm_data.state==complete)||(enc28j60_comm_data.state==ready_to_send)) {
+		ret_val=1;
+		enc28j60_comm_data.state=release_pkt_A;
+		ENC28J60_PORT|=(1<<ENC28J60_CS); // raise incase this is from a data R/W operation
+	}
+	return ret_val;
+}
