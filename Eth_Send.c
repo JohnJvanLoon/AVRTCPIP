@@ -6,8 +6,12 @@
  *  Nathaniel Tammer
  *  Mathew Holdom
  *  Wasay Shaikh
+ *  Ruoyu Liu
+ *  Roy Burnison
  */ 
-
+/************************************************************************/
+/* Includes                                                             */
+/************************************************************************/
 #include <avr/io.h>
 #include "spi.h"
 #include "enc28J60.h"
@@ -21,6 +25,18 @@ typedef struct
 }ETH_Send_comm_struct;
 
 volatile ETH_Send_comm_struct ETH_send_data;
+
+/************************************************************************/
+/*  Case structure for Ethernet Send.          
+*  /param return value set to 0.
+*  State of Ethernet Send is set to Idle at default.
+*  Start of send, requests an ENC28J60 attach to send via Ethernet, sets up to transfer packet.
+*  If no attach, return value is 0 and sent back to Idle.
+*  automatically writes EWRPT to ETXST+1 with auto increment.
+*  Writes destination MAC, source MAC, packet type, send packet.
+*  Wait function to be impletemented after transfer of packet.
+*  State set to complete which defaults back to Idle.
+/************************************************************************/
 
 uint8_t ETH_Send_run_state()
 {
@@ -39,7 +55,6 @@ uint8_t ETH_Send_run_state()
 			else ret_val =0;
 		break;
 		case Setup_TX_Packet:
-		//writing ewrpt to etxst +1. However, auto increment is enabled so this should be automatic??
 		break;
 		case S2:
 
@@ -65,7 +80,7 @@ uint8_t ETH_Send_run_state()
 		case Send_Packet:
 
 		break;
-		case S10:
+		case S10:  //impletement wait.
 
 		break;
 		case complete:
@@ -82,15 +97,13 @@ uint8_t ETH_Send_run_state()
 /* Helper functions                                                     */
 /************************************************************************/
 
-/**
-* ETH_Send_Release
-* \brief Changes the ethernet send state to Idle
-*
-* The ethernet send state will be changed to Idle if the current state is Complete.
-* If the current state is not Complete the state change will not take place.
-*
-* Returns 1 if change of state was successful or 0 if it was not.
-**/
+/************************************************************************/
+/* ETH_Send_Release
+* /brief sets the state of the Ethernet Send to Idle
+*  Ethernet state will only be changed to Idle if the Ethernet Send state is Complete.
+*  If state is neither complete nor Idle, state change will not take place.
+*  State change returns a 1 if successful, 0 if unsuccessful.
+/************************************************************************/
 
 uint8_t ETH_Send_Release(void) {
 	uint8_t ret_val = 0;
@@ -126,13 +139,18 @@ return_val=1;
 return return_val;
 }
 /********************************************************************//**
- * Write register and check for complete status
+ * Write register and check for complete status of Ethernet Send
  ********************************************************************/
 uint8_t ETH_Send_Comm_Complete(void)
 {
 	
 return 0;	
 }
+/********************************************************************//
+/* write to ethernet send buffer (EWRPT)
+ /param uint8_t reg
+ /param uint8_t data
+ /********************************************************************//
 
 inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
 {
@@ -141,8 +159,10 @@ inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
 
 }
 /************************************************************************//*
-*	ETH_Send_Complete
-* 	When compelte, return the value of 1, otherwise return the value of 0
+*  ETH_Send_Complete
+* sets up a return value at 0 default.
+*  If the state of ethernet send is complete, change return value to 1.
+*  Otherwise return value is at 0 and error.
 ************************************************************************/
 
 
@@ -158,10 +178,8 @@ uint8_t ETH_send_complete(void)
 
 /************************************************************************//**
  *  ETH_send_init
- * \brief Initializes the ETH_send state diagram code
- *
- * This must be called prior to running the states.
- *
+ * /brief will initiated the Ethernet send state diagram code
+ *  Must be called prior to running any states
  ************************************************************************/
 void ETH_send_init(void)
 {
