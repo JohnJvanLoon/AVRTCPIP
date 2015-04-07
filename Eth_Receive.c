@@ -44,7 +44,9 @@ volatile ETH_Receive_comm_struct ETH_receive_data;
 uint8_t ETH_receive_run_state(void)
 {
 	uint8_t ret_val=0;
+	uint8_t itemp[10];
 	static uint8_t inxt_pkt_ptr[2];
+	
 	switch (ETH_receive_data.state)
 	{
 		case idle: // Request attach to enc28j60
@@ -62,7 +64,7 @@ uint8_t ETH_receive_run_state(void)
 			break;
 
 		case S2://Packet Interrupt Flag = 1 - Set up Packet, = 0 - Release Enc
-		if (SPI_checkcomplete()){ 
+		if (ENC28J60_check_complete()){ 
 			ENC28J60_retrieve_register_value(&ret_val);
 			if (ret_val&PKTIF) {	
 				ETH_receive_data.state = ENC_Setup_Packet;
@@ -80,7 +82,7 @@ uint8_t ETH_receive_run_state(void)
 			if (ENC28J60_coms_attach()) ETH_receive_data.state=ETH_Setup_Packet_B;
 			break;
 		case ETH_Setup_Packet_B:// read next packet pointer and status vectors
-			ETH_receive_setup_pkt();
+			ETH_receive_setup_pkt(); // gets first 6 bytes of control vectors
 			break;
 		case ETH_Setup_Packet_C:// wait for enc to complete reading the 6 bytes then process
 			if (ENC28J60_check_complete()){
@@ -97,12 +99,18 @@ uint8_t ETH_receive_run_state(void)
 			break;
 
 		case Read_Data: //Read the Destination MAC
-// needs to be SPI_TXRX... first			SPI_read_data(&enc28J60_buffer, 6);
-// work continues here
-			ETH_receive_data.state = S5;
+				ENC28J60_read_data(6, data);
+				ETH_receive_data.state = S5;
 		break;
+
 		case S5:
-			if (ENC28J60_check_complete()) ETH_receive_data.state=Read_SRCMAC;
+			if (ENC28J60_check_complete()) 
+			{
+				ENC28J60_read_data(6,itemp);
+				eth_set_mac(itemp, 1); 
+				ETH_receive_data.state=Read_SRCMAC;
+				// could make request for next 6 bytes right here and save a state. Makes the state diagram mixed.
+			}
 		break;
 
 		case Read_SRCMAC:
@@ -179,8 +187,33 @@ void ETH_receive_init(void)
 	ETH_receive_data.state=idle;
 }
 
+/************************************************************************//**
+ *  ETH_receive_setup_pkt
+ * \brief Reads the initial packet data and performs setup for retrieving a packet
+ *
+ * Perform packet initialization. This includes reading any initial data
+ * from the packet to get control vectors / addresses.
+ *
+ ************************************************************************/
 void ETH_receive_setup_pkt(void)
 {
 	uint8_t data[6];
 	ENC28J60_read_data(6, data);
+}
+
+/************************************************************************//**
+ *  ETH_receive_read_data
+ * \brief Request to read data from the Ethernet hardware
+ *
+ * Does not actually return any data. Use the retreive data function for that.
+ *
+ * \param len the number of bytes requested to read.
+ *
+ * returns number of bytes requested to be read. This will be less than or equal to the parameter len
+ ************************************************************************/
+uint8_t ETH_receive_read_data(uint8_t len)
+{
+	uint8_t data[10];
+	if (len>10) len = 10;
+	return ENC28J60_read_data(len, data);
 }

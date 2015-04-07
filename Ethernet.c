@@ -19,7 +19,7 @@ void ETHERNET_init(void);
  } ether_header_t;
  
  #define ETHER_VALS 2
- volatile ether_header_t ether_val[ETHER_VALS]; 
+ volatile ether_header_t ether_val[ETHER_VALS]; //0 send, 1 receive
  
 uint8_t my_mac[6]={0x02,0,0,0,0,1}; /// should be changed to reside in FLASH.
 
