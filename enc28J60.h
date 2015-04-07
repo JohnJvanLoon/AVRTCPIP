@@ -252,5 +252,5 @@ void ENC28J60_soft_reset(void);
 uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data);
 uint8_t ENC28J60_check_complete(void);
 uint8_t ENC28J60_comm_run_state(void);
-
+uint8_t ENC28J60_retrieve_data(uint8_t len, uint8_t * data);
 #endif

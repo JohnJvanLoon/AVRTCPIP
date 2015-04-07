@@ -208,12 +208,11 @@ void ETH_receive_setup_pkt(void)
  * Does not actually return any data. Use the retreive data function for that.
  *
  * \param len the number of bytes requested to read.
+ * \param data pointer to space containing dummy data to send for read. Contents not modified
  *
  * returns number of bytes requested to be read. This will be less than or equal to the parameter len
  ************************************************************************/
-uint8_t ETH_receive_read_data(uint8_t len)
+uint8_t ETH_receive_read_data(uint8_t * data, uint8_t len)
 {
-	uint8_t data[10];
-	if (len>10) len = 10;
 	return ENC28J60_read_data(len, data);
 }
