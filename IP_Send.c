@@ -10,7 +10,7 @@
 #include "ETH_send.h"
 #include "IP_Send.h"
 
-typedef enum {Idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, Complete}IP_send_comm_states;
+typedef enum {idle, S0A, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, complete}IP_send_comm_states;
 	
 typedef struct
 {
@@ -24,7 +24,7 @@ uint8_t IP_send_comm(void)
 	uint8_t ret_val=0;
 	switch (IP_send_comm_data.state)
 	{
-		case Idle:
+		case idle:
 
 		break;
 		case S0A:
@@ -60,7 +60,7 @@ uint8_t IP_send_comm(void)
 		case S10:
 
 		break;
-		case Complete:
+		case complete:
 
 		break;
 		default: // state is corrupt.
@@ -74,7 +74,7 @@ uint8_t IP_send_attach(void)
 {
 	uint8_t ret_val=0;
 	if (ETH_Send_Attach()){
-	if (IP_send_comm_data.state==Idle) {
+	if (IP_send_comm_data.state==idle) {
 		IP_send_comm_data.state=S0A;
 		ret_val=1;
 		// initialize SPI timer here.  For now it is not implemented.
@@ -101,10 +101,10 @@ uint8_t IP_Send_Release (void)
 	
 	if (ETH_Send_Release())
 	{
-		if (IP_send_comm_data.state!=Complete)
+		if (IP_send_comm_data.state!=complete)
 		{
 		}
-			IP_send_comm_data.state=Idle;
+			IP_send_comm_data.state=idle;
 			ret_val=1;
 	}
 
