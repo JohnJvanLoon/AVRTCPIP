@@ -56,21 +56,22 @@ uint8_t ETH_receive_run_state(void)
 			} 
 			break;
 			
-		case S1: //Check_New_Packet
+		case S1: //Read the Ethernet Input Register
 			ENC28J60_read_register(EIR);
 			ETH_receive_data.state = S2;
 			break;
-		case S2:
-		if (ENC28J60_check_complete()){ 
+
+		case S2://Packet Interrupt Flag = 1 - Set up Packet, = 0 - Release Enc
+		if (SPI_checkcomplete()){ 
 			ENC28J60_retrieve_register_value(&ret_val);
-			if (ret_val&PKTIF) {
-				ETH_receive_data.state = ETH_Setup_Packet;
-				
+			if (ret_val&PKTIF) {	
+				ETH_receive_data.state = ENC_Setup_Packet;
 				} else ETH_receive_data.state = Release_ENC;
 			}
 		else ETH_receive_data.state = Release_ENC;
 		ret_val=0;
 		break;
+
 		case ETH_Setup_Packet: // Perform enc28j60 initialization for a new packet
 			// first release ENC to be able to switch from register to data
 			if (ENC28J60_coms_release()) ETH_receive_data.state=ETH_Setup_Packet_A;		
@@ -95,27 +96,30 @@ uint8_t ETH_receive_run_state(void)
 			ret_val=0;
 			break;
 
-		case Read_Data:
-			
+		case Read_Data: //Read the Destination MAC
+// needs to be SPI_TXRX... first			SPI_read_data(&enc28J60_buffer, 6);
+// work continues here
+			ETH_receive_data.state = S5;
 		break;
 		case S5:
-		if (ENC28J60_check_complete()) ETH_receive_data.state=Read_SRCMAC;
+			if (ENC28J60_check_complete()) ETH_receive_data.state=Read_SRCMAC;
 		break;
-		case Read_SRCMAC:
 
+		case Read_SRCMAC:
+		//6 bytes
 		break;
 		case S7:
 		if (ENC28J60_check_complete()) ETH_receive_data.state=Store_MAC;
 		break;
-		case Store_MAC:
-
+		case Read_Type: 
 		break;
 		case S9:
 		if (ENC28J60_check_complete()) ETH_receive_data.state=ENC_Release;
 		break;
 		case ENC_Release:
-		//read
+		//read (similar to states above)
 		ENC28J60_coms_release();
+		ETH_receive_data.state=Start_IP_Receive;
 		break;
 		case Start_IP_Receive:
 
@@ -140,8 +144,10 @@ uint8_t ETH_receive_run_state(void)
 			ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_Packet:
-
+			//is this the same as enc28j60 release? (probably not)
+			
 		break;
+
 		case S18a:
 			if (ENC28J60_check_complete()) ETH_receive_data.state=Release_ENC;
 				else ETH_receive_data.state = Release_Packet;
@@ -151,11 +157,8 @@ uint8_t ETH_receive_run_state(void)
 				ETH_receive_data.state = S20;
 				timer_set_delay(ETH_RECEIVE_TIMER, 2); // set up a short delay to allow other processes to attach to the spi sub system
 			}
+			ret_val = 1;
     		break;
-		case S20:
-			// Extra state. should be removed from state diagram
-			ETH_receive_data.state = idle;
-			break;
 		default:
 			ETH_receive_data.state = idle;
 		break;
