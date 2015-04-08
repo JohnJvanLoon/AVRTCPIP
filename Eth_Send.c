@@ -17,8 +17,11 @@
 #include "spi.h"
 #include "enc28J60.h"
 #include "Eth_Send.h"
+#include "Ethernet.h"
 
-typedef enum {idle, S0A, ETH_Send_Start, Setup_TX_Packet, Setup_TX_Packet_A, Setup_TX_Packet_B, Setup_TX_Packet_C, Setup_TX_Packet_D, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, complete} ETH_Send_comm_States;
+typedef enum {idle, S0A, ETH_Send_Start, Setup_TX_Packet, Setup_TX_Packet_A, Setup_TX_Packet_B, Setup_TX_Packet_C, Setup_TX_Packet_D, 
+	S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, Send_Packet_A, Send_Packet_B, Send_Packet_C, Send_Packet_D,
+	Send_Packet_E, S10, complete} ETH_Send_comm_States;
 
 typedef struct
 {
@@ -49,6 +52,7 @@ uint8_t ETH_Send_run_state()
 		break;
 		
 		case S0A: // wait to start sending data
+		// higher layers are writing their data to the ENC28J60 during this time.
 		break;
 		
 		case ETH_Send_Start:
@@ -82,33 +86,62 @@ uint8_t ETH_Send_run_state()
 			break;
 			
 		case Write_Dest_MAC:
-
+			eth_get_mac(ETH_send_data.data, SEND_PKT_NM);// copy destination mac into data buffer for sending.
+			ENC28J60_write_data(6,ETH_send_data.data);
+			ETH_send_data.state=S4;
 		break;
 		
 		case S4:
+			if (ENC28J60_check_complete()) ETH_send_data.state=Write_SRC_MAC;
+			break;
 
-		break;
 		case Write_SRC_MAC:
-
+			ENC28J60_write_data(6,my_mac);
+			ETH_send_data.state=S6;
 		break;
+
 		case S6:
+			if (ENC28J60_check_complete()) ETH_send_data.state=Write_Type;
+			break;
 
-		break;
 		case Write_Type:
-
-		break;
+			eth_get_type(ETH_send_data.data, SEND_PKT_NM);// copy destination mac into data buffer for sending.
+			ENC28J60_write_data(2,ETH_send_data.data);
+			ETH_send_data.state=S8;
+			break;
+		
 		case S8:
-
-		break;
+			if (ENC28J60_check_complete()) ETH_send_data.state=Send_Packet;
+			break;
+		
 		case Send_Packet:
-
-		break;
-		case S10:  //impletement wait.
-
+			ENC28J60_coms_release();	
+			ETH_send_data.state=Send_Packet_A;
+			break;
+		
+		case Send_Packet_A:
+			if (ENC28J60_coms_attach()) ETH_send_data.state=Send_Packet_B;
+			break;
+			
+		case Send_Packet_B:
+			ENC28J60_BITCLR_CTRL(EIR, (1<<TXIF));
+			ETH_send_data.state=Send_Packet_C;
+			break;
+		
+		case Send_Packet_C:
+			if (ENC28J60_check_complete()) ETH_send_data.state=Send_Packet_D;
+			break;
+		case Send_Packet_D:
+			ENC28J60_BITSET_CTRL(ECON1, (1<<TXRTS));
+			ETH_send_data.state=Send_Packet_E;
+			break;
+		case S10:  //same as Send_Packet_E
+		case Send_Packet_E:
+			if (ENC28J60_check_complete()) ETH_send_data.state=complete;
 		break;
 		case complete:
-
 		break;
+		
 		default:
 		ETH_send_data.state = idle;
 		break;

@@ -22,5 +22,11 @@ uint16_t eth_set_length(uint16_t len,uint8_t val);
 uint16_t eth_get_length(uint16_t *len,uint8_t val);
 uint8_t eth_set_mac(uint8_t *mac, uint8_t val);
 uint8_t eth_get_mac(uint8_t *mac,uint8_t val);
+uint8_t eth_set_type(uint16_t type,uint8_t ival);
+uint8_t eth_get_type(uint8_t *ptype,uint8_t ival);
+
+#define SEND_PKT_NM 0
+#define RECEIVE_PKT_NM 1
+
 
 #endif /* ETHERNET_H_ */
