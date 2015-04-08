@@ -233,7 +233,13 @@
 #define ENC28J60_SCK PB7
 #define ENC28J60_CS PB4
 
+/// Definitions for the Memory configuration of the ENC28J60
+#define ENC28J60_TXST 0x1A00
+// RXST must be 0 as per ENC28J60 errata 
+#define ENC28J60_TXND 0x1FFF
 
+#define ENC28J60_RXST 0x0000  
+#define ENC28J60_RXND 0x19FF
 
 /************************************************************************/
 /* Function declarations                                                */
@@ -250,8 +256,10 @@ void ENC28J60_BITCLR_CTRL(uint8_t REGISTER, uint8_t data);
 uint8_t ENC28J60_comm_run_state(void);
 void ENC28J60_soft_reset(void); 
 uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data);
+uint8_t ENC28J60_write_data(uint8_t len, uint8_t * data);
 uint8_t ENC28J60_check_complete(void);
 uint8_t ENC28J60_comm_run_state(void);
 uint8_t ENC28J60_retrieve_data(uint8_t len, uint8_t * data);
 uint8_t ENC28J60_pkt_release(void);
+uint8_t ENC28J60_write_pointer(uint8_t ireg, uint16_t idata);
 #endif

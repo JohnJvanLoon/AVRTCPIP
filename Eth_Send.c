@@ -8,6 +8,7 @@
  *  Wasay Shaikh
  *  Ruoyu Liu
  *  Roy Burnison
+ *  John van Loon
  */ 
 /************************************************************************/
 /* Includes                                                             */
@@ -17,14 +18,15 @@
 #include "enc28J60.h"
 #include "Eth_Send.h"
 
-typedef enum {idle, ETH_Send_Start, Setup_TX_Packet, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, complete} ETH_Send_comm_States;
+typedef enum {idle, S0A, ETH_Send_Start, Setup_TX_Packet, Setup_TX_Packet_A, Setup_TX_Packet_B, Setup_TX_Packet_C, Setup_TX_Packet_D, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, S10, complete} ETH_Send_comm_States;
 
 typedef struct
 {
 	ETH_Send_comm_States state;
+	uint8_t data[10];
 }ETH_Send_comm_struct;
 
-volatile ETH_Send_comm_struct ETH_send_data;
+ETH_Send_comm_struct ETH_send_data;
 
 /************************************************************************/
 /*  Case structure for Ethernet Send.          
@@ -43,25 +45,46 @@ uint8_t ETH_Send_run_state()
 	uint8_t ret_val=0;
 	switch (ETH_send_data.state)
 	{
-		case idle:
-
+		case idle: // wait for an event to cause a send.
 		break;
+		
+		case S0A: // wait to start sending data
+		break;
+		
 		case ETH_Send_Start:
-			ret_val = ENC28J60_coms_attach();
-			if (ret_val==1)	//request an ENC28J60 attach to send via ETHERNET
-				{
-				ETH_send_data.state = Setup_TX_Packet;	//go to the next state
-				}
-			else ret_val =0;
+			if (ENC28J60_coms_attach()) ETH_send_data.state = Setup_TX_Packet;	//go to the next state
 		break;
+		
 		case Setup_TX_Packet:
-		break;
-		case S2:
-
-		break;
+			// write the write pointer to the correct location
+			ETH_setup_pkt_write();
+			ETH_send_data.state=Setup_TX_Packet_A;
+			break;
+		case Setup_TX_Packet_A:
+			if (ENC28J60_check_complete()){
+				ENC28J60_coms_release();
+				ETH_send_data.state=Setup_TX_Packet_B;
+			}
+			break;
+		case Setup_TX_Packet_B:
+			if (ENC28J60_coms_attach()) {
+				ETH_send_data.state=Setup_TX_Packet_C;
+			}
+			break;
+		case Setup_TX_Packet_C: // send control byte first
+			ETH_send_data.data[0]=0;
+			ENC28J60_write_data(1, ETH_send_data.data); // write the per packet control byte. No special flags set.	
+			ETH_send_data.state=Setup_TX_Packet_D;
+			break;
+		case S2: // same as Setup_TX_Packet_D			
+		case Setup_TX_Packet_D:
+			if (ENC28J60_check_complete()) ETH_send_data.state=Write_Dest_MAC;
+			break;
+			
 		case Write_Dest_MAC:
 
 		break;
+		
 		case S4:
 
 		break;
@@ -146,10 +169,15 @@ uint8_t ETH_Send_Comm_Complete(void)
 	
 return 0;	
 }
+
 /********************************************************************//**
+ *  ETH_send_write_register
  *  \brief write to ethernet send buffer (EWRPT)
+ *
  * \param uint8_t reg
  * \param uint8_t data
+ *
+ * returns 1 on success, 0 on failure
  ********************************************************************/
 
 inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
@@ -184,4 +212,17 @@ uint8_t ETH_send_complete(void)
 void ETH_send_init(void)
 {
 	ETH_send_data.state=idle;
+}
+
+/********************************************************************//**
+ *  ETH_setup_pkt_write
+ *  \brief set up for writing to an outgoing packet
+ *
+ * calls the set up routines from enc28J60 to perform set up for a new packet
+ *
+ * returns 1 on success, 0 on failure
+ ********************************************************************/
+uint8_t ETH_setup_pkt_write(void)
+{
+	return ENC28J60_write_pointer(ETXSTL, ENC28J60_TXST);
 }

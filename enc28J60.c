@@ -18,7 +18,9 @@ const unsigned char PROG_cmy_mac[6] PROGMEM={0x00,0x04,0xA3,0x03,0x04,0x05}; //0
 	
 
 typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, release_pkt_B, release_pkt_C, 
-	release_pkt_D, release_pkt_E, release_pkt_F, release_pkt_G, release_pkt_H, complete} enc28j60_comm_states;
+	release_pkt_D, release_pkt_E, release_pkt_F, release_pkt_G, release_pkt_H, 
+	write_pointer, write_pointer_A, write_pointer_B, write_pointer_C, write_pointer_D, write_pointer_E, write_pointer_F, write_pointer_G,
+	complete} enc28j60_comm_states;
 //defines for the flags
 // set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
 #define TWO_BYTE_REG_READ 0x80
@@ -29,12 +31,13 @@ typedef struct
 	enc28j60_comm_states state;
 	uint8_t flags; 
 	uint16_t nxt_pkt_addr; // holds the next packet address in the enc28J60
+	uint8_t buffer[8]; // general buffer
 }
 enc28j60_comm_struct;
 
-volatile enc28j60_comm_struct enc28j60_comm_data; // global variable for the enc28j60 communication data 
+enc28j60_comm_struct enc28j60_comm_data; // global variable for the enc28j60 communication data 
 
-uint8_t enc28J60_buffer[6]; 
+ 
 
 
 uint8_t ENC28J60_comm_run_state(void)
@@ -50,7 +53,7 @@ uint8_t ENC28J60_comm_run_state(void)
 			break;
 		case S2A: // Sending bank select for register
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			spi_TXRX_data(2, enc28J60_buffer);
+			spi_TXRX_data(2, enc28j60_comm_data.buffer);
 			enc28j60_comm_data.state=S2B;
 			break;
 		case S2B:
@@ -62,8 +65,8 @@ uint8_t ENC28J60_comm_run_state(void)
 		case S2C: // Sending / receiving data to register
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
 			if (enc28j60_comm_data.flags&TWO_BYTE_REG_READ) { // check for extra byte to read out non ETH registers
-			spi_TXRX_data(2, &enc28J60_buffer[2]);}
-			else spi_TXRX_data(3, &enc28J60_buffer[2]); //need 3 bytes for PHY, MII and MAC registers
+			spi_TXRX_data(2, &enc28j60_comm_data.buffer[2]);}
+			else spi_TXRX_data(3, &enc28j60_comm_data.buffer[2]); //need 3 bytes for PHY, MII and MAC registers
 			enc28j60_comm_data.state=S2D;
 			break;
 		case S2D:
@@ -78,7 +81,7 @@ uint8_t ENC28J60_comm_run_state(void)
 			break;
 		case release_pkt_A: // release the received packet by writing read pointer to next packet value and decrementing the packet count
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			spi_TXRX_data(2, enc28J60_buffer); // Write bank register
+			spi_TXRX_data(2, enc28j60_comm_data.buffer); // Write bank register
 			enc28j60_comm_data.state=release_pkt_B;
 			break;
 			case release_pkt_B:
@@ -89,7 +92,7 @@ uint8_t ENC28J60_comm_run_state(void)
 			break;
 		case release_pkt_C: // Sending / receiving data to register
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			spi_TXRX_data(2, &enc28J60_buffer[2]); // write read pointer low byte
+			spi_TXRX_data(2, &enc28j60_comm_data.buffer[2]); // write read pointer low byte
 			enc28j60_comm_data.state=release_pkt_D;
 			break;
 		case release_pkt_D:
@@ -100,7 +103,7 @@ uint8_t ENC28J60_comm_run_state(void)
 			break;
 		case release_pkt_E: // Sending / receiving data to register
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			spi_TXRX_data(2, &enc28J60_buffer[4]); // write read pointer high byte
+			spi_TXRX_data(2, &enc28j60_comm_data.buffer[4]); // write read pointer high byte
 			enc28j60_comm_data.state=release_pkt_F;
 			break;
 		case release_pkt_F:
@@ -120,7 +123,48 @@ uint8_t ENC28J60_comm_run_state(void)
 				enc28j60_comm_data.state=complete;
 			}
 			break;
-			
+		case write_pointer:
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			if (ENC28J60_write_register(enc28j60_comm_data.buffer[4],enc28j60_comm_data.buffer[5])) {// set up low register to write
+				enc28j60_comm_data.state=write_pointer_A;
+				}
+			break;
+		case write_pointer_A:
+			spi_TXRX_data(2, enc28j60_comm_data.buffer); // bank select
+			enc28j60_comm_data.state=write_pointer_B;
+			break;
+			case write_pointer_B:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=write_pointer_C;
+			}
+		case write_pointer_C:
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			spi_TXRX_data(2, &enc28j60_comm_data.buffer[2]); // pointer low value
+			enc28j60_comm_data.state=write_pointer_B;
+			break;
+		case write_pointer_D:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=write_pointer_E;
+			}
+		case write_pointer_E:
+			ENC28J60_PORT&=~(1<<ENC28J60_CS);
+			if (ENC28J60_write_register(enc28j60_comm_data.buffer[6],enc28j60_comm_data.buffer[7])) {// set up high register to write
+				enc28j60_comm_data.state=write_pointer_F;
+			}
+		case write_pointer_F: // no need to select bank registers again
+				ENC28J60_PORT&=~(1<<ENC28J60_CS);
+				spi_TXRX_data(2, &enc28j60_comm_data.buffer[2]); // pointer high value
+				enc28j60_comm_data.state=write_pointer_G;
+			break;
+		case write_pointer_G:
+			if (SPI_checkcomplete()) {
+				ENC28J60_PORT|=(1<<ENC28J60_CS);
+				enc28j60_comm_data.state=complete;
+			}
+			break;
+		
 		case complete:
 			// ENC28J60_PORT|=(1<<ENC28J60_CS);	can not be put here. This would terminate a data transfer! Must be placed in the release function
 			break;
@@ -131,6 +175,7 @@ uint8_t ENC28J60_comm_run_state(void)
 	}
 	return iret_val;	
 }
+
 /** 
  * function ENC28J60_write_register
  * \brief Initialization of the enc28J60
@@ -147,11 +192,38 @@ uint8_t ENC28J60_write_register(uint8_t ireg, uint8_t idata)	//takes the registe
 {
 	uint8_t iret_val=0;
 	if ((enc28j60_comm_data.state== ready_to_send)||(enc28j60_comm_data.state==complete)) {
-		enc28J60_buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
-		enc28J60_buffer[1] = (ireg>>BANK_OFFSET); 
-		enc28J60_buffer[2] = (WRITE_CTRL_REG|(0x1F && ireg)); //mask off 3 MSB and OR with OP code
-		enc28J60_buffer[3] = idata; 
+		enc28j60_comm_data.buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
+		enc28j60_comm_data.buffer[1] = (ireg>>BANK_OFFSET); 
+		enc28j60_comm_data.buffer[2] = (WRITE_CTRL_REG|(0x1F && ireg)); //mask off 3 MSB and OR with OP code
+		enc28j60_comm_data.buffer[3] = idata; 
 		enc28j60_comm_data.state=S2A;
+		iret_val=1;
+	}
+	return iret_val;
+}
+
+/** 
+ * function ENC28J60_write_pointer
+ * \brief sets up a pointer write
+ *
+ * This function sets up the enc28j60_com_data.buffer for a pointer write. Pointers are written low then high byte.
+ * The pointer low address is stored in buffer[4] with value in [5], high in [6] value in [7].
+ * 
+ * \param[in] ireg The register low address to write. High is ireg+1 (no wrap arounds).
+ * \param[in] idata	the value to write to the register
+ *
+ * return: 0 on failure, 1 on success.
+ *
+*****************************************************************************/
+uint8_t ENC28J60_write_pointer(uint8_t ireg, uint16_t idata)	//takes the register location argument and writes the data to it
+{
+	uint8_t iret_val=0;
+	if ((enc28j60_comm_data.state== ready_to_send)||(enc28j60_comm_data.state==complete)) {
+		enc28j60_comm_data.buffer[4] = ireg;
+		enc28j60_comm_data.buffer[6] = ireg+1;
+		enc28j60_comm_data.buffer[5] = (uint8_t)idata&0xFF;
+		enc28j60_comm_data.buffer[7] = (uint8_t)(idata>>8); 
+		enc28j60_comm_data.state=write_pointer;
 		iret_val=1;
 	}
 	return iret_val;
@@ -172,12 +244,12 @@ uint8_t ENC28J60_read_register(uint8_t reg)	//takes the register location argume
 {
 	uint8_t ret_val=0;
 	if ((enc28j60_comm_data.state == ready_to_send)||(enc28j60_comm_data.state==complete)) {
-		enc28J60_buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
-		enc28J60_buffer[1] = (reg>>BANK_OFFSET); 
-		enc28J60_buffer[2] = (READ_CTRL_REG|(0x1F && reg)); //mask off 3 MSB and OR with OP code
-		enc28J60_buffer[3] = 0; 
+		enc28j60_comm_data.buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
+		enc28j60_comm_data.buffer[1] = (reg>>BANK_OFFSET); 
+		enc28j60_comm_data.buffer[2] = (READ_CTRL_REG|(0x1F && reg)); //mask off 3 MSB and OR with OP code
+		enc28j60_comm_data.buffer[3] = 0; 
 		enc28j60_comm_data.state=S2A;
-		if (enc28J60_buffer[1]&0x02) { // banks 2 or 3
+		if (enc28j60_comm_data.buffer[1]&0x02) { // banks 2 or 3
 			enc28j60_comm_data.flags&=~TWO_BYTE_REG_READ;
 		} else {
 			enc28j60_comm_data.flags=TWO_BYTE_REG_READ;
@@ -204,14 +276,14 @@ uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data)
 { 
 	uint8_t ret_val=0;
 	if (enc28j60_comm_data.state == ready_to_send) { // first time for reading data
-		enc28J60_buffer[0]=READ_BUFF_MEM;
-		if (spi_TXRX_data(1,enc28J60_buffer)) { 
-			ret_val=spi_TXRX_data(len, enc28J60_buffer); // this erases the data read back during the READ_BUF_MEM
+		enc28j60_comm_data.buffer[0]=READ_BUFF_MEM;
+		if (spi_TXRX_data(1,enc28j60_comm_data.buffer)) { 
+			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); // this erases the data read back during the READ_BUF_MEM
 														 // so no need to skip the first byte on a read.
 		}
 	}
 	if ((enc28j60_comm_data.state==complete)) { // repeat reads
-		ret_val=spi_TXRX_data(len, enc28J60_buffer);
+		ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
 	}
 	return ret_val;
 }
@@ -232,14 +304,14 @@ uint8_t ENC28J60_write_data(uint8_t len, uint8_t * data)
 {
 	uint8_t ret_val=0;
 	if (enc28j60_comm_data.state == ready_to_send) { // first time for reading data
-		enc28J60_buffer[0]=WRITE_BUFF_MEM;
-		if (spi_TXRX_data(1,enc28J60_buffer)) {
-			ret_val=spi_TXRX_data(len, enc28J60_buffer); // this erases the data read back during the READ_BUF_MEM
+		enc28j60_comm_data.buffer[0]=WRITE_BUFF_MEM;
+		if (spi_TXRX_data(1,enc28j60_comm_data.buffer)) {
+			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); // this erases the data read back during the READ_BUF_MEM
 			// so no need to skip the first byte on a read.
 		}
 	}
 	if ((enc28j60_comm_data.state==complete)) { // repeat reads
-		ret_val=spi_TXRX_data(len, enc28J60_buffer);
+		ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
 	}
 	return ret_val;
 }
@@ -260,11 +332,11 @@ uint8_t ENC28J60_retrieve_register_value(uint8_t *val)
 {
 	uint8_t ret_val=0;
 	if (enc28j60_comm_data.flags&TWO_BYTE_REG_READ) { 
-		if (SPI_read_data( enc28J60_buffer, 2)==2) ret_val=1;
-		*val=enc28J60_buffer[1];
+		if (SPI_read_data( enc28j60_comm_data.buffer, 2)==2) ret_val=1;
+		*val=enc28j60_comm_data.buffer[1];
 	} else {
-		if (SPI_read_data( enc28J60_buffer, 3)==3) ret_val=1;
-		*val=enc28J60_buffer[2];
+		if (SPI_read_data( enc28j60_comm_data.buffer, 3)==3) ret_val=1;
+		*val=enc28j60_comm_data.buffer[2];
 	}
 	return ret_val;
 }	
@@ -339,7 +411,7 @@ void ENC28J60_MAC_Init(void)
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	//TXEND This is the end of the TX memory.
-	// currently made to 1529 bytes. (5F9)
+	// buffer currently made to 1535 bytes. (5FF)
 	// Select register Bank 0
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ECON1));
@@ -347,32 +419,34 @@ void ENC28J60_MAC_Init(void)
 	SPI_DATA_REG=0;
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
-		
+	
+	// TX end	
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXNDL));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0xFF));
+	SPI_DATA_REG=((uint8_t)ENC28J60_TXND);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXNDH));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x1F));
+	SPI_DATA_REG=(ENC28J60_TXND>>8)&0x1F;
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
+	// TX Start 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXSTL));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x06));
+	SPI_DATA_REG=((uint8_t)ENC28J60_TXST);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ETXSTH));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x1A));
+	SPI_DATA_REG=((ENC28J60_TXST>>8)&0x1F);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
@@ -380,14 +454,14 @@ void ENC28J60_MAC_Init(void)
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXSTL));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x00));
+	SPI_DATA_REG=((uint8_t) ENC28J60_RXST);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXSTH));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x00));
+	SPI_DATA_REG=((ENC28J60_RXST>>8)&0x1F);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	
@@ -395,14 +469,14 @@ void ENC28J60_MAC_Init(void)
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXNDL));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x05));
+	SPI_DATA_REG=((uint8_t)ENC28J60_RXND);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ERXNDH));
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((0x1A));
+	SPI_DATA_REG=((ENC28J60_RXND>>8)&0x1F);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
@@ -430,6 +504,7 @@ void ENC28J60_MAC_Init(void)
 	 while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	 ENC28J60_PORT|=(1<<ENC28J60_CS); 
  }
+ 
  void ENC28J60_MAC_ADDRESS_Init(void)
 {
 	//store MAADR1
@@ -603,12 +678,13 @@ uint8_t ENC28J60_pkt_release(void)
 		ret_val=1;
 		enc28j60_comm_data.state=release_pkt_A;
 		ENC28J60_PORT|=(1<<ENC28J60_CS); // raise incase this is from a data R/W operation
-		enc28J60_buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); // write bank register //mask off 3 MSB and OR with OP code
-		enc28J60_buffer[1] = (ERDPTL>>BANK_OFFSET);
-		enc28J60_buffer[2] = (WRITE_CTRL_REG|(0x1F && ERDPTL)); //write read pointer low byte
-		enc28J60_buffer[3] = (uint8_t)(enc28j60_comm_data.nxt_pkt_addr);
-		enc28J60_buffer[4] = (WRITE_CTRL_REG|(0x1F && ERDPTH)); //write read pointer high byte
-		enc28J60_buffer[5] = (uint8_t)(enc28j60_comm_data.nxt_pkt_addr>>8);
+		enc28j60_comm_data.buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); // write bank register //mask off 3 MSB and OR with OP code
+		enc28j60_comm_data.buffer[1] = (ERDPTL>>BANK_OFFSET);
+		enc28j60_comm_data.buffer[2] = (WRITE_CTRL_REG|(0x1F && ERDPTL)); //write read pointer low byte
+		enc28j60_comm_data.buffer[3] = (uint8_t)(enc28j60_comm_data.nxt_pkt_addr);
+		enc28j60_comm_data.buffer[4] = (WRITE_CTRL_REG|(0x1F && ERDPTH)); //write read pointer high byte
+		enc28j60_comm_data.buffer[5] = (uint8_t)(enc28j60_comm_data.nxt_pkt_addr>>8);
 	}
 	return ret_val;
 }
+

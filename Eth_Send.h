@@ -8,4 +8,5 @@ uint8_t ETH_Send_Attach(void);
 uint8_t ETH_Send_Complete(void);
 uint8_t ETH_Send_Comm_Complete(void);
 uint8_t ETH_send_write_register(uint8_t reg, uint8_t data);
+uint8_t ETH_setup_pkt_write(void);
 #endif

@@ -143,10 +143,10 @@ uint8_t ETH_receive_run_state(void)
 			ETH_receive_data.state=Start_IP_Receive;
 		break;
 		case Start_IP_Receive:
-			IP_receive_run_states();
-			ETH_receive_data.state=S14;
+			if (ip_receive_request_attach()) ETH_receive_data.state=S14;
 		break;
 		case Start_ICMP_Receive:
+		
 
 		break;
 		case S14:
