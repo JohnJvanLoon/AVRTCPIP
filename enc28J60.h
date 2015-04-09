@@ -250,7 +250,7 @@ uint8_t ENC28J60_coms_release(void);
 uint8_t ENC28J60_coms_attach(void);
 uint8_t ENC28J60_read_register(uint8_t reg);
 uint8_t ENC28J60_retrieve_register_value(uint8_t *val);
-uint8_t ENC28J60_write_register(uint8_t reg, uint8_t data);
+uint8_t ENC28J60_write_register(uint8_t ireg, uint8_t idata, uint8_t override);
 void ENC28J60_BITSET_CTRL(uint8_t REGISTER, uint8_t data);
 void ENC28J60_BITCLR_CTRL(uint8_t REGISTER, uint8_t data);
 uint8_t ENC28J60_comm_run_state(void);

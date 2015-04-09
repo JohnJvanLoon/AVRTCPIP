@@ -221,7 +221,7 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 			data++;		//Increment pointer address
 			num_bytes++;		//Increment number of bytes read
 			spi_data.r_index++;		//Increment read index
-			if (spi_data.r_index>=SPI_BUFFER_SIZE) spi_data.w_index=0;		//Overflow read index if greater than buffer size
+			if (spi_data.r_index>SPI_BUFFER_SIZE) spi_data.r_index=0;		//Overflow read index if greater than buffer size
 		}
 	}
 	return num_bytes;		//Return the number of bytes read
@@ -243,10 +243,11 @@ ISR(SPI_STC_vect)
 		spi_data.data[spi_data.w_index]=SPI_DATA_REG;
 		spi_data.w_index++;
 		if (spi_data.w_index>=SPI_BUFFER_SIZE) spi_data.w_index=0;
-		spi_data.len--; //decrement length of SPI data queue
-		if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.w_index];
-
-		else spi_data.state=complete;	
+		if (spi_data.len>0){
+			spi_data.len--; //decrement length of SPI data queue
+			if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.w_index];
+			else spi_data.state=complete;	
+		}
 }
 
 //unfinished helper functions created for the sake of definitions

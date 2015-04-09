@@ -19,8 +19,10 @@
 #include "Eth_Send.h"
 #include "Ethernet.h"
 
-typedef enum {idle, S0A, ETH_Send_Start, Setup_TX_Packet, Setup_TX_Packet_A, Setup_TX_Packet_B, Setup_TX_Packet_C, Setup_TX_Packet_D, 
-	S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6, Write_Type, S8, Send_Packet, Send_Packet_A, Send_Packet_B, Send_Packet_C, Send_Packet_D,
+typedef enum {idle, S0A, write_pointer, write_pointer_A, mark_end, mark_end_A, mark_end_B, mark_end_C, 
+	mark_end_D, mark_end_E, mark_end_F,	mark_end_G, ETH_Send_Start, Setup_TX_Packet, Setup_TX_Packet_A, 
+	Setup_TX_Packet_B, Setup_TX_Packet_C, Setup_TX_Packet_D, S2, Write_Dest_MAC, S4, Write_SRC_MAC, S6,
+	Write_Type, S8, Send_Packet, Send_Packet_A, Send_Packet_B, Send_Packet_C, Send_Packet_D,
 	Send_Packet_E, S10, complete} ETH_Send_comm_States;
 
 typedef struct
@@ -55,18 +57,59 @@ uint8_t ETH_Send_run_state()
 		// higher layers are writing their data to the ENC28J60 during this time.
 		break;
 		
+		case write_pointer:
+			ENC28J60_write_pointer(ETH_send_data.data[0], (uint16_t)*((uint16_t *) &ETH_send_data.data[2]));
+			ETH_send_data.state=write_pointer_A;
+			break;
+		case write_pointer_A:
+			if (ENC28J60_check_complete()) ETH_send_data.state=S0A;
+			break;
+
+		case mark_end: // set TXND pointer to the current location of the write pointer.
+			ENC28J60_read_register(EWRPTL);
+			ETH_send_data.state=mark_end_A;
+			break;
+		case mark_end_A:
+			if (ENC28J60_check_complete()) ETH_send_data.state=mark_end_B;
+			break;
+		case mark_end_B:
+			ENC28J60_retrieve_register_value(&ret_val);
+			ENC28J60_write_register(EWRPTL,0xFF,0); // temp test
+			ETH_send_data.state=mark_end_C;
+			ret_val=0;
+			break;
+		case mark_end_C:
+			if (ENC28J60_check_complete()) ETH_send_data.state=mark_end_D;
+			break;
+		case mark_end_D:
+			ENC28J60_read_register(ECON1);
+			ETH_send_data.state=mark_end_E;
+			break;
+		case mark_end_E:
+			if (ENC28J60_check_complete()) ETH_send_data.state=mark_end_F;
+			break;
+		case mark_end_F:
+			ENC28J60_retrieve_register_value(&ret_val);
+			ENC28J60_write_register(EWRPTH,0x1C,0); // temp test. Not able to read EWRPTH
+			ETH_send_data.state=mark_end_G;
+			ret_val=0;
+			break;
+		case mark_end_G:
+			if (ENC28J60_check_complete()) ETH_send_data.state=S0A;
+			break;
+		
 		case ETH_Send_Start:
 			if (ENC28J60_coms_attach()) ETH_send_data.state = Setup_TX_Packet;	//go to the next state
-		break;
+			break;
 		
 		case Setup_TX_Packet:
-			// write the write pointer to the correct location
+			// write the write pointer to the start of the TX buffer
 			ETH_setup_pkt_write();
 			ETH_send_data.state=Setup_TX_Packet_A;
 			break;
-		case Setup_TX_Packet_A:
+		case Setup_TX_Packet_A: // wait for start TX pointer write to finish
 			if (ENC28J60_check_complete()){
-				ENC28J60_coms_release();
+				ENC28J60_coms_release(); // prepare for data writing
 				ETH_send_data.state=Setup_TX_Packet_B;
 			}
 			break;
@@ -160,12 +203,13 @@ uint8_t ETH_Send_run_state()
 *  If state is neither complete nor Idle, state change will not take place.
 *  State change returns a 1 if successful, 0 if unsuccessful.
 ************************************************************************/
-
 uint8_t ETH_Send_Release(void) {
 	uint8_t ret_val = 0;
 	if (ETH_send_data.state == complete) {
-		ETH_send_data.state = idle;
-		ret_val = 1;
+		if (ENC28J60_coms_release()){
+			ETH_send_data.state = idle;
+			ret_val = 1;
+		}
 	}
 	return ret_val;
 }
@@ -183,56 +227,92 @@ uint8_t ETH_Send_Release(void) {
 ************************************************************************/
 uint8_t ETH_Send_Attach(void)
 {
-uint8_t return_val=0;
-if (ETH_send_data.state==idle)
-{
-if (ENC28J60_coms_attach() ==1)
-{
-ETH_send_data.state=ETH_Send_Start;
-return_val=1;
-}
-}
-return return_val;
+	uint8_t return_val=0;
+	if (ETH_send_data.state==idle)
+		{
+		if (ENC28J60_coms_attach())
+			{
+			ETH_send_data.state=S0A;
+			return_val=1;
+			}
+	}
+	return return_val;
 }
 /********************************************************************//**
  * Write register and check for complete status of Ethernet Send
  ********************************************************************/
-uint8_t ETH_Send_Comm_Complete(void)
+uint8_t ETH_Send_Complete(void)
 {
-	
-return 0;	
+	uint8_t ret_val=0;
+	if (ETH_send_data.state==complete) ret_val=1;
+	return ret_val;	
 }
 
 /********************************************************************//**
- *  ETH_send_write_register
- *  \brief write to ethernet send buffer (EWRPT)
+ *  ETH_send_write_ptr
+ *  \brief write to enc write pointer register
  *
- * \param uint8_t reg
+ * \param offset offset for the write pointer from the end of the ethernet header
  * \param uint8_t data
  *
  * returns 1 on success, 0 on failure
  ********************************************************************/
 
-inline uint8_t ETH_send_write_register(uint8_t reg, uint8_t data)
+inline uint8_t ETH_send_write_ptr(uint16_t offset)
 {
+	uint8_t ret_val=0;
 
-	return ENC28J60_write_register(reg, data);
+	if (ETH_send_data.state==S0A) {
+		ETH_send_data.data[2]= (offset+ETHHDR_LEN+ENC28J60_TXST);
+		ETH_send_data.data[3]= (offset+ETHHDR_LEN+ENC28J60_TXST)>>8;
+		
+		ETH_send_data.data[0]=EWRPTL;
+		ETH_send_data.state=write_pointer;		
+		ret_val=1;
+	}
+ return ret_val;
 
 }
+
 /************************************************************************//*
-*  ETH_Send_Complete
+*  ETH_send_complete
 * sets up a return value at 0 default.
 *  If the state of ethernet send is complete, change return value to 1.
 *  Otherwise return value is at 0 and error.
 ************************************************************************/
-
-
 uint8_t ETH_send_complete(void)
 {
+uint8_t iret_val = 0;
+if (ETH_send_data.state==complete)	iret_val = 1;
+return iret_val;
+}
+
+/************************************************************************//*
+*  ETH_send_ready
+*	\brief returns true if ETH_send is ready to start 
+*  If the state of eth_send is S0A return value is 1.
+*  Otherwise return value is at 0
+************************************************************************/
+uint8_t ETH_send_ready(void)
+{
 	uint8_t iret_val = 0;
-	if (ETH_send_data.state==complete)
-	{
+	if (ETH_send_data.state==S0A) iret_val = 1;
+	return iret_val;
+}
+
+/************************************************************************//*
+*  ETH_send_start
+*	\brief starts the sending of the ethernet header and packet.
+*   If the state of eth_send is S0A return value is 1 and the state is changed to 
+*	Setup_TX_Packet.
+*  Otherwise return value is at 0 and the state is not changed.
+************************************************************************/
+uint8_t ETH_send_start(void)
+{
+	uint8_t iret_val = 0;
+	if (ETH_send_data.state==S0A) {
 		iret_val = 1;
+		ETH_send_data.state=Setup_TX_Packet;
 	}
 	return iret_val;
 }
@@ -251,11 +331,30 @@ void ETH_send_init(void)
  *  ETH_setup_pkt_write
  *  \brief set up for writing to an outgoing packet
  *
- * calls the set up routines from enc28J60 to perform set up for a new packet
+ * calls the set up routines from enc28J60 to write the TXST value
  *
  * returns 1 on success, 0 on failure
  ********************************************************************/
 uint8_t ETH_setup_pkt_write(void)
 {
 	return ENC28J60_write_pointer(ETXSTL, ENC28J60_TXST);
+}
+
+/********************************************************************//**
+ *  ETH_mark_end
+ *  \brief request the txnd pointer to be copied to the current write pointer value
+ *
+ *  copies the current write pointer value to the end of packet value.
+ *
+ * 
+ * returns 1 on success, 0 on failure
+ ********************************************************************/
+uint8_t ETH_mark_end(void)
+{
+	uint8_t ret_val=0;
+	if (ETH_send_data.state==S0A) {
+		ETH_send_data.state=mark_end;
+		ret_val=1;
+	}
+	return ret_val;
 }

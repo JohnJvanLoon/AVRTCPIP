@@ -19,7 +19,8 @@ const unsigned char PROG_cmy_mac[6] PROGMEM={0x00,0x04,0xA3,0x03,0x04,0x05}; //0
 
 typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, release_pkt_B, release_pkt_C, 
 	release_pkt_D, release_pkt_E, release_pkt_F, release_pkt_G, release_pkt_H, 
-	write_pointer, write_pointer_A, write_pointer_B, write_pointer_C, write_pointer_D, write_pointer_E, write_pointer_F, write_pointer_G,
+	write_pointer, write_pointer_A, write_pointer_B, write_pointer_C, write_pointer_D, write_pointer_E, 
+	write_pointer_F, write_pointer_G,  
 	complete} enc28j60_comm_states;
 //defines for the flags
 // set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
@@ -124,8 +125,9 @@ uint8_t ENC28J60_comm_run_state(void)
 			}
 			break;
 		case write_pointer:
-			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			if (ENC28J60_write_register(enc28j60_comm_data.buffer[4],enc28j60_comm_data.buffer[5])) {// set up low register to write
+			ENC28J60_PORT|=(1<<ENC28J60_CS);
+			if (ENC28J60_write_register(enc28j60_comm_data.buffer[4],enc28j60_comm_data.buffer[5],1)) {// set up low register to write
+				ENC28J60_PORT&=~(1<<ENC28J60_CS);
 				enc28j60_comm_data.state=write_pointer_A;
 				}
 			break;
@@ -138,21 +140,24 @@ uint8_t ENC28J60_comm_run_state(void)
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 				enc28j60_comm_data.state=write_pointer_C;
 			}
+			break;
 		case write_pointer_C:
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
 			spi_TXRX_data(2, &enc28j60_comm_data.buffer[2]); // pointer low value
-			enc28j60_comm_data.state=write_pointer_B;
+			enc28j60_comm_data.state=write_pointer_D;
 			break;
 		case write_pointer_D:
 			if (SPI_checkcomplete()) {
 				ENC28J60_PORT|=(1<<ENC28J60_CS);
 				enc28j60_comm_data.state=write_pointer_E;
 			}
+			break;
 		case write_pointer_E:
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
-			if (ENC28J60_write_register(enc28j60_comm_data.buffer[6],enc28j60_comm_data.buffer[7])) {// set up high register to write
+			if (ENC28J60_write_register(enc28j60_comm_data.buffer[6],enc28j60_comm_data.buffer[7],1)) {// set up high register to write
 				enc28j60_comm_data.state=write_pointer_F;
 			}
+			break;
 		case write_pointer_F: // no need to select bank registers again
 				ENC28J60_PORT&=~(1<<ENC28J60_CS);
 				spi_TXRX_data(2, &enc28j60_comm_data.buffer[2]); // pointer high value
@@ -164,7 +169,7 @@ uint8_t ENC28J60_comm_run_state(void)
 				enc28j60_comm_data.state=complete;
 			}
 			break;
-		
+
 		case complete:
 			// ENC28J60_PORT|=(1<<ENC28J60_CS);	can not be put here. This would terminate a data transfer! Must be placed in the release function
 			break;
@@ -184,14 +189,15 @@ uint8_t ENC28J60_comm_run_state(void)
  * This function always prepares the data as 1 bank select then 2 register.
  * \param[in] ireg The register to write.
  * \param[in] idata	the value to write to the register
+ * \param[in] override nonzero indicates to not check for state compliance
  *
  * return: 0 on failure, 1 on success.
  *
 *****************************************************************************/
-uint8_t ENC28J60_write_register(uint8_t ireg, uint8_t idata)	//takes the register location argument and writes the data to it
+uint8_t ENC28J60_write_register(uint8_t ireg, uint8_t idata, uint8_t override)	//takes the register location argument and writes the data to it
 {
 	uint8_t iret_val=0;
-	if ((enc28j60_comm_data.state== ready_to_send)||(enc28j60_comm_data.state==complete)) {
+	if ((enc28j60_comm_data.state== ready_to_send)||(enc28j60_comm_data.state==complete)||(override)) {
 		enc28j60_comm_data.buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
 		enc28j60_comm_data.buffer[1] = (ireg>>BANK_OFFSET); 
 		enc28j60_comm_data.buffer[2] = (WRITE_CTRL_REG|(0x1F && ireg)); //mask off 3 MSB and OR with OP code
@@ -278,13 +284,13 @@ uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data)
 	if (enc28j60_comm_data.state == ready_to_send) { // first time for reading data
 		enc28j60_comm_data.buffer[0]=READ_BUFF_MEM;
 		if (spi_TXRX_data(1,enc28j60_comm_data.buffer)) { 
-			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); // this erases the data read back during the READ_BUF_MEM
-														 // so no need to skip the first byte on a read.
+			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); 
+			// this erases the data read back during the READ_BUF_MEM opcode
+			// so no need to skip the first byte on a read.
 		}
-	}
-	if ((enc28j60_comm_data.state==complete)) { // repeat reads
-		ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
-	}
+	} else if ((enc28j60_comm_data.state==complete)) { // repeat reads
+				ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
+			}
 	return ret_val;
 }
 
@@ -306,13 +312,14 @@ uint8_t ENC28J60_write_data(uint8_t len, uint8_t * data)
 	if (enc28j60_comm_data.state == ready_to_send) { // first time for reading data
 		enc28j60_comm_data.buffer[0]=WRITE_BUFF_MEM;
 		if (spi_TXRX_data(1,enc28j60_comm_data.buffer)) {
-			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); // this erases the data read back during the READ_BUF_MEM
+			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); 
 			// so no need to skip the first byte on a read.
 		}
 	}
 	if ((enc28j60_comm_data.state==complete)) { // repeat reads
 		ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
 	}
+	ret_val=len-ret_val;
 	return ret_val;
 }
 
@@ -370,6 +377,7 @@ void ENC28J60_BITCLR_CTRL(uint8_t REGISTER, uint8_t data)
 *****************************************************************************************************************************************/
 void ENC28J60_MAC_Init(void)
 {
+	uint8_t temp;
 	// Select register Bank 2
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ECON1));
@@ -630,7 +638,7 @@ uint8_t ENC28J60_coms_attach(void)
 {
 	uint8_t ret_val=0;
 	ret_val= spi_request_attach(); //sets value for attach
-	if ((ret_val==1) && (enc28j60_comm_data.state=idle))
+	if ((ret_val) && (enc28j60_comm_data.state==idle))
 	{
 		enc28j60_comm_data.state=ready_to_send; //sets state to ready_to_send
 	}

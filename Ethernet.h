@@ -27,6 +27,7 @@ uint8_t eth_get_type(uint8_t *ptype,uint8_t ival);
 
 #define SEND_PKT_NM 0
 #define RECEIVE_PKT_NM 1
-
+// length of the ethernet header in bytes
+#define ETHHDR_LEN 14
 
 #endif /* ETHERNET_H_ */
