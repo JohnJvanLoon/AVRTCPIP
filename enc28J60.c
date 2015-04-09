@@ -662,8 +662,10 @@ uint8_t ENC28J60_check_complete(void)
 
 void ENC28J60_soft_reset(void)
 {
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPDR = SYS_RESET_CMD; 
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
 	sei();
 	timer_set_delay(0,2); //use timer 0, 1ms delay. 
 	while(!timer_check_delay(0));//wait 1ms for the oscillator to stabilize

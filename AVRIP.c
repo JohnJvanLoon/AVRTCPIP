@@ -82,9 +82,15 @@ void run_debug_eth_send(void)
 			istate=2;
 			break;
 		case 2: // wait for finish
-			if (ETH_send_ready()) istate=3;
+			if (ETH_send_ready()) {
+				istate=3;
+				ENC28J60_coms_release();
+			}
 			break;
-		case 3: // write the data payload
+		case 3:
+				if (ENC28J60_coms_attach()) istate=4;
+				break;
+		case 4: // write the data payload
 			buf[0]=sizeof(data)-index-1;
 			if (buf[0])	index+=ENC28J60_write_data(buf[0],data);
 			else {
