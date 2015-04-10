@@ -41,7 +41,6 @@ int main(void)
 	uint16_t hdr_crc;
 	init();
 	sei();
-	IP_send_hdr_crc(&hdr_crc,0);
     while(1)
     {
         run_states();
@@ -110,10 +109,19 @@ void run_debug_eth_send(void)
 			buf[0]=sizeof(data)-index-1;
 			if (buf[0])	index+=ENC28J60_write_data(buf[0],data);
 			else {
-				istate=7;
+				istate=107;
 				index=0;
 			}
 			break;
+		case 107:
+			if (ENC28J60_check_complete()) istate=108;
+			break;
+		case 108:
+			ENC28J60_coms_release();
+			istate=109;
+			break;
+		case 109:
+			if (ENC28J60_coms_attach()) istate=8;
 		case 7: // set the end of packet marker here.
 			ETH_mark_end();
 			istate=8;

@@ -78,7 +78,7 @@ uint8_t ENC28J60_comm_run_state(void)
 			break;
 			
 		case S3: // state used for enc28j60 data memory access
-					
+			if (SPI_checkcomplete()) enc28j60_comm_data.state=complete;	
 			break;
 		case release_pkt_A: // release the received packet by writing read pointer to next packet value and decrementing the packet count
 			ENC28J60_PORT&=~(1<<ENC28J60_CS);
@@ -309,15 +309,16 @@ uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data)
 uint8_t ENC28J60_write_data(uint8_t len, uint8_t * data)	
 {
 	uint8_t ret_val=0;
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	if (enc28j60_comm_data.state == ready_to_send) { // first time for reading data
 		enc28j60_comm_data.buffer[0]=WRITE_BUFF_MEM;
-		if (spi_TXRX_data(1,enc28j60_comm_data.buffer)) {
-			ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); 
-			// so no need to skip the first byte on a read.
-		}
-	}
-	if ((enc28j60_comm_data.state==complete)) { // repeat reads
+		spi_TXRX_data(1,enc28j60_comm_data.buffer); 
+		ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer); 
+		// so no need to skip the first byte on a read.
+		enc28j60_comm_data.state=S3;
+	} else if ((enc28j60_comm_data.state==complete)||(enc28j60_comm_data.state==S3)) { // repeat reads
 		ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
+		enc28j60_comm_data.state=S3;
 	}
 	ret_val=len-ret_val;
 	return ret_val;
