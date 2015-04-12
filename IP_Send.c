@@ -5,7 +5,9 @@
  * Author: Ryan Walmsley
  * Nathaniel Tammer
  */ 
-
+/********************************************************************//**
+ * Defines                                                     *
+ ************************************************************************/
 #include <avr/io.h>
 #include "ETH_send.h"
 #include "IP_Send.h"
@@ -19,6 +21,10 @@ typedef struct
 
 volatile IP_send_comm_struct IP_send_comm_data; // global variable for the IP send communication data 
 
+
+/********************************************************************//**
+ * IP Send Case Struct                                                *
+ ************************************************************************/
 uint8_t IP_send_comm(void)
 {
 	uint8_t ret_val=0;
@@ -30,25 +36,25 @@ uint8_t IP_send_comm(void)
 		case S0A:
 
 		break;
-		case S1:
+		case S1: //write EWRPT = ETXST+15 and ETH_HDC+1
 
 		break;
 		case S2:
 
 		break;
-		case S3:
+		case S3: 
 
 		break;
 		case S4:
 
 		break;
-		case S5:
+		case S5: //WriteTTL, protocol, checksum, source IP
 
 		break;
 		case S6:
 
 		break;
-		case S7:
+		case S7: //write destination IP
 
 		break;
 		case S8:
@@ -70,6 +76,10 @@ uint8_t IP_send_comm(void)
 	return ret_val;	
 }
 
+/********************************************************************//**
+ * If ETH_send attach returns a 1, change state from S0A from S0,
+ * otherwise return 0                                                     *
+ ************************************************************************/
 uint8_t IP_send_attach(void)
 {
 	uint8_t ret_val=0;
@@ -84,6 +94,10 @@ uint8_t IP_send_attach(void)
 	return ret_val;
 }
 
+/********************************************************************//**
+ * If IP_send attach returns a 1, change state from S0A from S1,
+ * otherwise return 0                                                     *
+ ************************************************************************/
 uint8_t IP_Send_Start (void)
 {
 	uint8_t ret_val=0;
@@ -94,7 +108,10 @@ uint8_t IP_Send_Start (void)
 	}
 	return ret_val;
 }
-
+/********************************************************************//**
+ * If ETH_send release returns a 1,changes to S0
+ * otherwise return a 0                                                  *
+ ************************************************************************/
 uint8_t IP_Send_Release (void)
 {
 	uint8_t ret_val=0;
