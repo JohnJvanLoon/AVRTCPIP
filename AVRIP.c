@@ -38,7 +38,6 @@ void run_debug_eth_send(void);
 
 int main(void)
 {
-	uint16_t hdr_crc;
 	init();
 	sei();
     while(1)

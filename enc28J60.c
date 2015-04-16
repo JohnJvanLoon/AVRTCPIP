@@ -378,7 +378,6 @@ void ENC28J60_BITCLR_CTRL(uint8_t REGISTER, uint8_t data)
 *****************************************************************************************************************************************/
 void ENC28J60_MAC_Init(void)
 {
-	uint8_t temp;
 	// Select register Bank 2
 	ENC28J60_PORT&=~(1<<ENC28J60_CS);
 	SPI_DATA_REG=(WRITE_CTRL_REG|(0x1F & ECON1));

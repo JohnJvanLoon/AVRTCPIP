@@ -2,18 +2,26 @@
  * Timer.c
  *
  * Created: 2015-03-07 2:38:14 PM
- *  Author: John,
- *	Nathaniel Tammer
+ * Author: Nathaniel Tammer
  */
+
+/********************************
+* Includes
+*********************************/
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "Timer.h"
 
-#define NUM_DELAYS 5	//Allow for 5 delays
+/********************************
+* Globals
+*********************************/
 
-/// delays are set up as 0- SPI delay.
-volatile uint8_t delays[NUM_DELAYS];	//currently 5 elements to allow for 5 delays to be used at once.
-uint8_t delay_index;	//For counting amount of idle delays
+volatile uint8_t delays[NUM_DELAYS];	//Currently 5 elements to allow for 5 delays to be used at once.
+
+/********************************
+* Interrupt Routines
+*********************************/
 
 /**
 * Interrupt routine for Timer0 output compare match.
@@ -24,16 +32,18 @@ uint8_t delay_index;	//For counting amount of idle delays
 * each of the 5 possible delays are checked to see if they are active.  If a delay is not
 * equal to 0 it is decremented by 1, If a delay is already 0 it is ignored.
 */
-ISR(TIMER0_COMP_vect)
-{
-	uint8_t idle_delays = 0;
-	for (delay_index = 0;delay_index < NUM_DELAYS;delay_index++)	//Check all 5 possible delays.
-	{
-		if (delays[delay_index] != 0) delays[delay_index]--;	//If delay is not zero decrement by 1.
-		else idle_delays++;	//If delay is zero increment idle_delays
+ISR(TIMER0_COMP_vect) {
+	uint8_t idle_delays = 0, delay_index = 0;	//To count idle delays/Index for delay array.
+	while (delay_index < NUM_DELAYS) {	//Check all 5 possible delays.
+		if (delays[delay_index]) delays[delay_index]--;	//If delay is not zero decrement by 1.
+		if (!delays[delay_index]) idle_delays++;	//If delay is zero increment idle_delays.
+		delay_index++;	//Increment delay index.
 	}
 	if (idle_delays == NUM_DELAYS) TIMSK &=~ (1<<OCIE0);	//Disable Timer0 output compare interrupt if no delays in use.
 }
+/********************************
+* Function Defines
+*********************************/
 
 /**
 * timer_set_delay
@@ -55,10 +65,9 @@ ISR(TIMER0_COMP_vect)
 * 
 * This function doesn't return anything.
 */
-void timer_set_delay(uint8_t delay_number, uint8_t delay)
-{
-	if (!(TIMSK & (1<<OCIE0))) TIMSK |= (1<<OCIE0);	//Enable Timer0 output compare interrupt if not already enabled.
+void timer_set_delay(uint8_t delay_number, uint8_t delay) {
 	delays[delay_number] = delay;	//Start a delay.
+	if (!(TIMSK & (1<<OCIE0))) TIMSK |= (1<<OCIE0);	//Enable Timer0 output compare interrupt if not already enabled.
 }
 
 /**
@@ -74,8 +83,7 @@ void timer_set_delay(uint8_t delay_number, uint8_t delay)
 * 
 * returns 1 if delay has finished, 0 if the delay isn't over yet.
 */
-uint8_t timer_check_delay(uint8_t delay_number)
-{
+uint8_t timer_check_delay(uint8_t delay_number) {
 	if (delays[delay_number]) return 0;	//If delay is not over yet return 0.
 	else return 1;	//If delay is over return 1.
 }
@@ -87,7 +95,7 @@ uint8_t timer_check_delay(uint8_t delay_number)
 *	Initializes Timer/Counter 0 in CTC mode with a prescaler of /64, and sets the 
 * output compare register to a value of 125 (decimal).
 * 	Interrupts are enabled for output compare matches when the timer_set_delay function is
-* called and the interupt is disabled when there are no delays in use.  This function does not
+* called and the interrupt is disabled when there are no delays in use.  This function does not
 * enable global interrupts.  Please enable global interrupts somewhere else in this program before use.
 *	Setting the prescaler to /64 gives a clock of 125 KHz to the counter, that is a 
 * period of 0.000008 mS.  This means that 125 clock cycles take exactly 1 mS.  The 
@@ -97,8 +105,7 @@ uint8_t timer_check_delay(uint8_t delay_number)
 * a value of 125 (which is 1 mS).
 * Does not return any values or accept any arguments/parameters.
 */
-void init_timer0(void)
-{
+void init_timer0(void) {
 	OCR0 = 125;	//Sets output compare value to 125 (decimal).
 	TCCR0 = (1<<WGM01) | (1<<CS01) | (1<<CS00);	//Set prescaler to /64 on the internal clock, start in CTC mode.
 }
