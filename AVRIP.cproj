@@ -47,7 +47,7 @@
         <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.avrdragon</ToolType>
-      <ToolNumber>00A200050764</ToolNumber>
+      <ToolNumber>00A2000033F0</ToolNumber>
       <ToolName>AVR Dragon</ToolName>
     </com_atmel_avrdbg_tool_avrdragon>
     <avrtoolinterface>JTAG</avrtoolinterface>
@@ -94,7 +94,6 @@
       <Value>DEBUG</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
-  <avrgcc.compiler.optimization.level>Optimize most (-O3)</avrgcc.compiler.optimization.level>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
@@ -113,9 +112,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="enc28J60.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Eth.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Ethernet.c">

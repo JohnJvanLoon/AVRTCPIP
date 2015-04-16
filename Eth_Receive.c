@@ -18,12 +18,16 @@
 #include "SPI.h"
 #include "Eth_Receive.h"
 #include "Timer.h"
+#include "Ethernet.h"
+#include "IP_Receive.h"
 
 void ETH_receive_setup_pkt(void);
 
-typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A,ETH_Setup_Packet_B,ETH_Setup_Packet_C, Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, ENC_Release, Start_IP_Receive, 
+typedef enum {idle, S1, S2, S2A, ETH_Setup_Packet, ETH_Setup_Packet_A, ETH_Setup_Packet_B, ETH_Setup_Packet_C,
+	 Read_Data, S5, Read_SRCMAC, S7, Store_MAC, S9, Read_Type, ENC_Release, Start_IP_Receive, 
 	Start_ARP_Receive, Start_ICMP_Receive, S14, S15, S16, 
-	S17, Release_Packet, S18a, Release_ENC, S20} ETH_Receive_comm_States;
+	S17, Release_Packet, S18a, Release_ENC} 
+	ETH_Receive_comm_States;
 
 typedef struct  
 {
@@ -67,7 +71,7 @@ uint8_t ETH_receive_run_state(void)
 		if (ENC28J60_check_complete()){ 
 			ENC28J60_retrieve_register_value(&ret_val);
 			if (ret_val&PKTIF) {	
-				ETH_receive_data.state = ENC_Setup_Packet;
+				ETH_receive_data.state = ETH_Setup_Packet;
 				} else ETH_receive_data.state = Release_ENC;
 			}
 		else ETH_receive_data.state = Release_ENC;
@@ -83,6 +87,7 @@ uint8_t ETH_receive_run_state(void)
 			break;
 		case ETH_Setup_Packet_B:// read next packet pointer and status vectors
 			ETH_receive_setup_pkt(); // gets first 6 bytes of control vectors
+			ETH_receive_data.state = ETH_Setup_Packet_C;
 			break;
 		case ETH_Setup_Packet_C:// wait for enc to complete reading the 6 bytes then process
 			if (ENC28J60_check_complete()){
@@ -93,52 +98,61 @@ uint8_t ETH_receive_run_state(void)
 				else {
 					ETH_receive_data.state=S17;				
 					ENC28J60_coms_release();
+					  }
 				}
-			}
 			ret_val=0;
 			break;
 
 		case Read_Data: //Read the Destination MAC
-				ENC28J60_read_data(6, data);
+				ENC28J60_read_data(6, itemp);
 				ETH_receive_data.state = S5;
 		break;
 
 		case S5:
-			if (ENC28J60_check_complete()) 
-			{
+			if (ENC28J60_check_complete()) {
 				ENC28J60_read_data(6,itemp);
 				eth_set_mac(itemp, 1); 
 				ETH_receive_data.state=Read_SRCMAC;
-				// could make request for next 6 bytes right here and save a state. Makes the state diagram mixed.
 			}
 		break;
 
 		case Read_SRCMAC:
-		//6 bytes
+			ENC28J60_read_data(6,itemp); //read next 6 bytes
+			ETH_receive_data.state=S7;
 		break;
 		case S7:
-		if (ENC28J60_check_complete()) ETH_receive_data.state=Store_MAC;
+			if (ENC28J60_check_complete()) {	
+				ENC28J60_read_data(6,itemp);
+				eth_set_mac(itemp,2);
+				ETH_receive_data.state=Read_Type;
+			}		
 		break;
 		case Read_Type: 
+			ENC28J60_read_data(6,itemp);
+			ETH_receive_data.state=S9;
 		break;
 		case S9:
-		if (ENC28J60_check_complete()) ETH_receive_data.state=ENC_Release;
+			if (ENC28J60_check_complete()) {
+				ENC28J60_read_data(6,itemp);
+				eth_set_mac(itemp,3);
+				ETH_receive_data.state=ENC_Release;
+			}			
 		break;
 		case ENC_Release:
-		//read (similar to states above)
-		ENC28J60_coms_release();
-		ETH_receive_data.state=Start_IP_Receive;
+			ENC28J60_coms_release();
+			ETH_receive_data.state=Start_IP_Receive;
 		break;
 		case Start_IP_Receive:
-
-		break;
-		case Start_ARP_Receive:
-
+			if (ip_receive_request_attach()) ETH_receive_data.state=S14;
 		break;
 		case Start_ICMP_Receive:
+		
 
 		break;
 		case S14:
+			if (IP_Receive_complete()) {
+				ETH_receive_data.state=S17;
+			}
 
 		break;
 		case S15:
@@ -148,21 +162,18 @@ uint8_t ETH_receive_run_state(void)
 
 		break;
 		case S17:
-			ENC28J60_coms_attach();
-			ETH_receive_data.state = Release_Packet;
+			if (ENC28J60_coms_attach())	ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_Packet:
-			//is this the same as enc28j60 release? (probably not)
-			
+			if (ENC28J60_pkt_release())	ETH_receive_data.state = S18a;
 		break;
-
 		case S18a:
 			if (ENC28J60_check_complete()) ETH_receive_data.state=Release_ENC;
-				else ETH_receive_data.state = Release_Packet;
+				//else ETH_receive_data.state = Release_Packet;
 			break;
 		case Release_ENC:
 			if (ENC28J60_coms_release()) {
-				ETH_receive_data.state = S20;
+				ETH_receive_data.state = idle;
 				timer_set_delay(ETH_RECEIVE_TIMER, 2); // set up a short delay to allow other processes to attach to the spi sub system
 			}
 			ret_val = 1;

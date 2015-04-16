@@ -16,6 +16,7 @@ void ETHERNET_init(void);
 	 uint8_t source_protocol;
 	 uint16_t ip_hdr_crc;
 	 uint16_t length;
+	 uint16_t type;
  } ether_header_t;
  
  #define ETHER_VALS 2
@@ -191,7 +192,7 @@ inline uint16_t eth_get_crc(uint16_t *crc, uint8_t ival)
 *
 * This function returns 1 if successful, 0 if not.
 */
-inline uint8_t eth_set_protocol(uint8_t iproto,uint8_t ival)
+inline uint8_t eth_set_protocol(uint16_t iproto,uint8_t ival)
 {
 	if(ival<ETHER_VALS)
 	{
@@ -256,6 +257,51 @@ inline uint16_t eth_get_length(uint16_t *len,uint8_t ival)
 	if(ival<ETHER_VALS)
 	{
 		*len = ether_val[ival].length;
+		return 1;
+	}
+	return 0;
+}
+
+/**
+* eth_get_type
+* stores MAC values in structure.
+*
+* When called this function stores type values from specified array into structure.
+*
+* \param ptype Point to an array[2] within other code to store type
+* \param ival The Array Select number (0-1)
+*
+* * This function returns 1 if successful, 0 if not.
+*/
+inline uint8_t eth_get_type(uint8_t *ptype,uint8_t ival)
+{
+	if(ival<ETHER_VALS)
+	{
+		*ptype=(uint8_t) (ether_val[ival].type);
+		ptype++;
+		*ptype=(uint8_t) (ether_val[ival].type >>8);
+		return 1;
+	}
+	return 0;
+}
+
+/**
+* eth_set_type
+* stores MAC values in structure.
+*
+* When called this function stores type values into the specified structure.
+*
+* \param type type to store in structure
+* \param ival The Array Select number (0-1)
+*
+* * This function returns 1 if successful, 0 if not.
+*/
+inline uint8_t eth_set_type(uint16_t type,uint8_t ival)
+{
+	if(ival<ETHER_VALS)
+	{
+		
+		ether_val[ival].type=type;
 		return 1;
 	}
 	return 0;

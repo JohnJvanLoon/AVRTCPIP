@@ -6,9 +6,10 @@
  *  Nathaniel
  */ 
 #include <avr/io.h>
+#include "Eth_Receive.h"
 #include "IP_Receive.h"
 #include "IP_Send.h"
-#include "eth.h"
+#include "Ethernet.h"
 
 typedef enum  {Idle, Attached, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, Complete} ip_receive_states_t;
 
@@ -20,7 +21,6 @@ typedef struct
 	ip_receive_states_t state;
 	uint8_t proto;
 	uint8_t CRC;
-	uint8_t hlen;
 }ip_recieve_struct_t;	
 
 volatile ip_recieve_struct_t ip_receive_data;
@@ -211,12 +211,7 @@ uint8_t IP_Receive_Update_CRC (uint8_t *data)
 
 void IP_Receive_Check_Options (uint8_t *data)
 {
-	uint8_t temp1 = *data+20;
-	if (hlen>5)
-	ip_receive_data.IP_options=temp1>>20;
 	
-else (do nothing)
-;
 }
 
 void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
@@ -224,10 +219,17 @@ void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
 	//Code Here
 }
 
-uint8_t IP_Receive_Fragment (uint8_t *data)
+uint8_t IP_Receive_Check_Fragment (uint8_t *data)
 {
 	uint8_t is_frag = 0;
-	//Code here
+	
+	uint16_t temp1 = (((uint16_t) (*data))& 0x1FFF); 
+	
+	if((temp1!=0x0000)||(*data&0x20)) //check if temp1 (frag offset) is not 0 OR "more fragments flag" is not 0
+	{
+		is_frag=1;
+	}
+	
 	return is_frag;
 }
 
@@ -240,18 +242,22 @@ uint8_t IP_Receive_DataSize_ExtLength (uint8_t *data)
 
 uint8_t IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
 {
-	return ETH_receive_read_data(len, data);
+	return ETH_receive_read_data(data, len);
 }
 
 void IP_Receive_Discard_Packet (void)
 {
-	//Code Here
+	ip_receive_data.state = Complete;
 }
 
 void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
 {
-	uint8_t temp1 = *data;
-	ip_receive_data.hlen=temp>>4;
-	ip_receive_data.ver1=temp&0F;
+	ip_receive_data.hlen=(*data)>>4;
+	ip_receive_data.ver1=(*data)&0x0F;
 }
 
+uint8_t IP_Receive_complete(void)
+{
+	if (ip_receive_data.state == Complete) return 1;
+	else return 0;
+}
