@@ -6,7 +6,6 @@
  *  Nathaniel
  */ 
 #include <avr/io.h>
-#include "Eth_Receive.h"
 #include "IP_Receive.h"
 #include "IP_Send.h"
 #include "Ethernet.h"
@@ -21,6 +20,9 @@ typedef struct
 	ip_receive_states_t state;
 	uint8_t proto;
 	uint8_t CRC;
+	uint8_t IP_source[4];
+	uint8_t IP_destination[4];
+	uint8_t IP_datasize[2];
 }ip_recieve_struct_t;	
 
 volatile ip_recieve_struct_t ip_receive_data;
@@ -214,18 +216,33 @@ void IP_Receive_Check_Options (uint8_t *data)
 	
 }
 
-void IP_Receive_Read_IP (uint8_t *data, uint8_t *IP)
+void IP_Receive_Read_Source_IP (uint8_t *data)
 {
-	//Code Here
+	data = data+12;
+	for (uint8_t i = 0; i < 4; i++)
+	{
+		ip_receive_data.IP_source[i] = *data;
+		data++;
+	}
+}
+
+void IP_Receive_Read_Destination_IP (uint8_t *data)
+{
+	data = data+16;
+	for (uint8_t i = 0; i < 4; i++)
+	{
+		ip_receive_data.IP_destination[i] = *data;
+		data++;
+	}
 }
 
 uint8_t IP_Receive_Check_Fragment (uint8_t *data)
 {
 	uint8_t is_frag = 0;
 	
-	uint16_t temp1 = (((uint16_t) (*data))& 0x1FFF); 
+	uint16_t temp = (((uint16_t) (*data))& 0x1FFF); 
 	
-	if((temp1!=0x0000)||(*data&0x20)) //check if temp1 (frag offset) is not 0 OR "more fragments flag" is not 0
+	if((temp!=0x0000)||(*data&0x20)) //check if temp (frag offset) is not 0 OR "more fragments flag" is not 0
 	{
 		is_frag=1;
 	}
@@ -233,21 +250,26 @@ uint8_t IP_Receive_Check_Fragment (uint8_t *data)
 	return is_frag;
 }
 
-uint8_t IP_Receive_DataSize_ExtLength (uint8_t *data)
+void IP_Receive_DataSize_ExtLength (uint8_t *data)
 {
-	uint8_t data_size = 0;
-	//Code Here
-	return data_size;
+	data = data+2;
+	ip_receive_data.IP_datasize[0] = *data;
+	data++;
+	ip_receive_data.IP_datasize[1] = *data;
+	
+	data = data+3;
+	IP_Receive_Check_Fragment (data);
+	IP_Receive_Proto_Type (data);
 }
 
 uint8_t IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
 {
-	return ETH_receive_read_data(data, len);
+	return ETH_receive_read_data(len, data);
 }
 
 void IP_Receive_Discard_Packet (void)
 {
-	ip_receive_data.state = Complete;
+	//Code Here
 }
 
 void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
@@ -256,8 +278,3 @@ void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
 	ip_receive_data.ver1=(*data)&0x0F;
 }
 
-uint8_t IP_Receive_complete(void)
-{
-	if (ip_receive_data.state == Complete) return 1;
-	else return 0;
-}

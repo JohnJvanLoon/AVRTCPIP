@@ -488,13 +488,6 @@ void ENC28J60_MAC_Init(void)
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
-	ENC28J60_PORT&=~(1<<ENC28J60_CS);
-	SPI_DATA_REG=(READ_CTRL_REG|(0x1F & ERXNDH));
-	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	SPI_DATA_REG=((ENC28J60_RXND>>8)&0x1F);
-	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
-	temp=SPDR;
-	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 }
 /*******************ENC28J60_ETHERNET_Init********************************************
