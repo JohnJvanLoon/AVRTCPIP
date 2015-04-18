@@ -66,6 +66,26 @@ void spi_init(void)
 }
 
 /************************************************************************//**
+ * Interrupt Service Routine (ISR) Serial Transfer Complete 
+ *On interrupt Initializes the SPI data register for data transfer.
+ *Increments the SPI data register. 
+ *If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.
+ *If data register length is still greater than 0 after decrement reset data register to original state.
+ *If none of the above go to state complete.
+ ************************************************************************/
+ISR(SPI_STC_vect)
+{
+		spi_data.data[spi_data.w_index]=SPI_DATA_REG;
+		spi_data.w_index++;
+		if (spi_data.w_index>=SPI_BUFFER_SIZE) spi_data.w_index=0;
+		if (spi_data.len>0){
+			spi_data.len--; //decrement length of SPI data queue
+			if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.w_index];
+			else spi_data.state=complete;	
+		}
+}
+
+/************************************************************************//**
  * Case structure for SPI     
  * State of SPI is at Idle, then it is attached and SPI timer is initiated (not yet implemented).
  * Data is sent if spi data length is empty.
@@ -169,14 +189,17 @@ uint8_t spi_release (void)
  
 uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 {
-	spi_data.r_index = spi_data.w_index;	//Set read pointer to write pointer
+	//w_index is the location to write the next byte read from SPI
+	//r_index is the location to read the next byte from
+	cli();
+	spi_data.r_index = spi_data.w_index;	//Set read pointer to current write pointer to wipe bytes from queue.
 	uint8_t temp;
-	temp=spi_data.w_index+spi_data.len; // get buffer index to store the byte in
+	temp=spi_data.w_index+spi_data.len; // get buffer index to store the data byte in
 
 	while ((len>0)&&(spi_data.len<=SPI_BUFFER_SIZE)) {
-		spi_data.len++;
-		if (temp>=SPI_BUFFER_SIZE) temp-=SPI_BUFFER_SIZE;
+		while(temp>=SPI_BUFFER_SIZE) temp-=SPI_BUFFER_SIZE;
 		spi_data.data[temp]=*data;
+		spi_data.len++;	
 		temp++;
 		len--;
 		data++;
@@ -189,6 +212,7 @@ uint8_t spi_TXRX_data(uint8_t len, uint8_t *data)
 		// All that is required here is to start the conversion.
 		spi_data.state=send;
 	}
+	sei();
 	// Re-enable the ADC ISR here
 	return len;
 
@@ -227,28 +251,6 @@ uint8_t SPI_read_data(uint8_t *data, uint8_t len)
 	return num_bytes;		//Return the number of bytes read
 }
 
-
-
-
-/************************************************************************//**
- * Interrupt Service Routine (ISR) Serial Transfer Complete 
- *On interrupt Initializes the SPI data register for data transfer.
- *Increments the SPI data register. 
- *If the size of the data register is greater or equal to the buffer of the SPI return Data register to 0.
- *If data register length is still greater than 0 after decrement reset data register to original state.
- *If none of the above go to state complete.
- ************************************************************************/
-ISR(SPI_STC_vect)
-{
-		spi_data.data[spi_data.w_index]=SPI_DATA_REG;
-		spi_data.w_index++;
-		if (spi_data.w_index>=SPI_BUFFER_SIZE) spi_data.w_index=0;
-		if (spi_data.len>0){
-			spi_data.len--; //decrement length of SPI data queue
-			if (spi_data.len>0) SPI_DATA_REG=spi_data.data[spi_data.w_index];
-			else spi_data.state=complete;	
-		}
-}
 
 //unfinished helper functions created for the sake of definitions
 

@@ -120,7 +120,8 @@ void run_debug_eth_send(void)
 			istate=109;
 			break;
 		case 109:
-			if (ENC28J60_coms_attach()) istate=8;
+			if (ENC28J60_coms_attach()) istate=7;
+			break;
 		case 7: // set the end of packet marker here.
 			ETH_mark_end();
 			istate=8;

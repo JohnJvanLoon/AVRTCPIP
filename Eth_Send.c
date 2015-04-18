@@ -82,7 +82,7 @@ uint8_t ETH_Send_run_state()
 			if (ENC28J60_check_complete()) ETH_send_data.state=mark_end_D;
 			break;
 		case mark_end_D:
-			ENC28J60_read_register(ECON1);
+			ENC28J60_read_register(ERXNDH);
 			ETH_send_data.state=mark_end_E;
 			break;
 		case mark_end_E:

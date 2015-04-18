@@ -251,7 +251,7 @@ uint8_t ENC28J60_read_register(uint8_t reg)	//takes the register location argume
 	uint8_t ret_val=0;
 	if ((enc28j60_comm_data.state == ready_to_send)||(enc28j60_comm_data.state==complete)) {
 		enc28j60_comm_data.buffer[0] = (WRITE_CTRL_REG|(0x1F && ECON1)); //mask off 3 MSB and OR with OP code
-		enc28j60_comm_data.buffer[1] = (reg>>BANK_OFFSET); 
+		enc28j60_comm_data.buffer[1] = (reg>>BANK_OFFSET)|0x04; // Leave RXEN on 
 		enc28j60_comm_data.buffer[2] = (READ_CTRL_REG|(0x1F && reg)); //mask off 3 MSB and OR with OP code
 		enc28j60_comm_data.buffer[3] = 0; 
 		enc28j60_comm_data.state=S2A;
@@ -288,7 +288,7 @@ uint8_t ENC28J60_read_data(uint8_t len, uint8_t * data)
 			// this erases the data read back during the READ_BUF_MEM opcode
 			// so no need to skip the first byte on a read.
 		}
-	} else if ((enc28j60_comm_data.state==complete)) { // repeat reads
+	} else if ((enc28j60_comm_data.state==complete)) { // repeat reads, not allowed in S03
 				ret_val=spi_TXRX_data(len, enc28j60_comm_data.buffer);
 			}
 	return ret_val;
@@ -486,6 +486,14 @@ void ENC28J60_MAC_Init(void)
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
 	SPI_DATA_REG=((ENC28J60_RXND>>8)&0x1F);
 	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	ENC28J60_PORT|=(1<<ENC28J60_CS);
+
+	ENC28J60_PORT&=~(1<<ENC28J60_CS);
+	SPI_DATA_REG=(READ_CTRL_REG|(0x1F & ERXNDH));
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	SPI_DATA_REG=((ENC28J60_RXND>>8)&0x1F);
+	while(!(SPSR & (1<<SPIF))); // do not care about blocking in the initialization routines.
+	temp=SPDR;
 	ENC28J60_PORT|=(1<<ENC28J60_CS);
 
 }
