@@ -9,6 +9,7 @@
 #include "IP_Receive.h"
 #include "IP_Send.h"
 #include "Ethernet.h"
+#include "Eth_Receive.h"
 
 typedef enum  {Idle, Attached, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, Complete} ip_receive_states_t;
 
@@ -264,7 +265,7 @@ void IP_Receive_DataSize_ExtLength (uint8_t *data)
 
 uint8_t IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
 {
-	return ETH_receive_read_data(len, data);
+	return ETH_receive_read_data(data, len);
 }
 
 void IP_Receive_Discard_Packet (void)
