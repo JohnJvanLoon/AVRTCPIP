@@ -35,7 +35,7 @@ typedef struct
 	//uint8_t data[10];
 }ETH_Receive_comm_struct;
 
-volatile ETH_Receive_comm_struct ETH_receive_data;
+ETH_Receive_comm_struct ETH_receive_data;
 /**************************************************************************************************//**
 * ETH_receive_run_state
 * Allows packets to be received as per state diagram
@@ -143,14 +143,14 @@ uint8_t ETH_receive_run_state(void)
 			ETH_receive_data.state=Start_IP_Receive;
 		break;
 		case Start_IP_Receive:
-			if (ip_receive_request_attach()) ETH_receive_data.state=S14;
+			if (IP_receive_request_attach()) ETH_receive_data.state=S14;
 		break;
 		case Start_ICMP_Receive:
 		
 
 		break;
 		case S14:
-			if (IP_Receive_complete()) {
+			if (IP_receive_release()) {
 				ETH_receive_data.state=S17;
 			}
 
@@ -226,4 +226,8 @@ void ETH_receive_setup_pkt(void)
 uint8_t ETH_receive_read_data(uint8_t * data, uint8_t len)
 {
 	return ENC28J60_read_data(len, data);
+}
+
+uint8_t ETH_check_complete(void) {
+	return ENC28J60_check_complete();
 }

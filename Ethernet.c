@@ -10,17 +10,16 @@
 void ETHERNET_init(void);
 void ETHERNET_init(void);
 
- typedef struct{
+ typedef struct {
 	 uint8_t destination_IP[4];
 	 uint8_t MAC[6];
 	 uint8_t source_protocol;
 	 uint16_t ip_hdr_crc;
 	 uint16_t length;
 	 uint16_t type;
- } ether_header_t;
+}ether_header_t;
  
- #define ETHER_VALS 2
- volatile ether_header_t ether_val[ETHER_VALS]; //0 send, 1 receive
+ether_header_t ether_val[ETHER_VALS]; //0 send, 1 receive
  
 uint8_t my_mac[6]={0x02,0,0,0,0,1}; /// should be changed to reside in FLASH.
 

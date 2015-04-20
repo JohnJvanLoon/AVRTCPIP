@@ -241,6 +241,11 @@
 #define ENC28J60_RXST 0x0000  
 #define ENC28J60_RXND 0x19FF
 
+//defines for the flags
+// set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
+#define TWO_BYTE_REG_READ 0x80
+#define ENC28J60_BUF_SIZE 10;
+
 /************************************************************************/
 /* Function declarations                                                */
 /************************************************************************/

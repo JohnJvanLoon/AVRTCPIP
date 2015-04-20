@@ -8,6 +8,8 @@
 
 #ifndef ETHERNET_H_
 #define ETHERNET_H_
+#define ETHER_VALS 2
+
 extern uint8_t my_mac[6];
 
 uint8_t eth_get_ip(uint8_t *ip,uint8_t val);

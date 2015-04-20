@@ -7,274 +7,320 @@
  */ 
 #include <avr/io.h>
 #include "IP_Receive.h"
-#include "IP_Send.h"
-#include "Ethernet.h"
+#include "Eth_Receive.h"
 
-typedef enum  {Idle, Attached, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, Complete} ip_receive_states_t;
+typedef enum {Idle, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, Complete} ip_receive_states_t;
 
-typedef struct 
-{
-	uint8_t hlen;
-	uint8_t ver1;
-	uint8_t IP_options;
+typedef struct {
 	ip_receive_states_t state;
+	uint8_t ver;
+	uint8_t hlen;
+	uint16_t dlen;
 	uint8_t proto;
-	uint8_t CRC;
-	uint8_t IP_source[4];
-	uint8_t IP_destination[4];
-	uint8_t IP_datasize[2];
+	uint16_t chk_sum;
+	uint8_t IP_source[IP_LEN];
+	uint8_t IP_destination[IP_LEN];
+	uint8_t data_buf[DATA_BUF_SIZE];
 }ip_recieve_struct_t;	
 
-volatile ip_recieve_struct_t ip_receive_data;
+ip_recieve_struct_t ip_receive_data;
 
 /**
- * IP_receive_run_states
+ * Case structure for the IP Receive system.
  * 
- * Totally incomplete, I've only written in the framework and commented on each state to describe what it should be doing.
+ * Starts off in the Idle state and stays there until an attach is requested.  When the states
+ * run they will extract important information from the IP header and store them in a structure.
+ * If there is a problem of if a packet must be discarded the function will return a 0 and move to
+ * the complete state.  When in the Complete state a Release must be requested before the state is
+ * changed back to Idle.
  * 
+ * Returns 1 if there were no problems, or 0 if there was a problem.
 **/
-
-uint8_t IP_receive_run_states(void)
-{
-	uint8_t ret_val = 0;
-	switch(ip_receive_data.state)
-	{
-		case Idle:	//S0 or Idle
+uint8_t IP_receive_run_states(void) {
+	uint8_t ret_val = 1;
+	switch(ip_receive_data.state) {
+		case Idle:
 		
-		//Wait for attach
-		ip_receive_data.state = Attached;
+		//Wait for attach.
 		
 		break;
-		case Attached:	//S1 or Attached
+		case S1:
 		
-		//Read 1 byte
+		ip_receive_data.chk_sum = 0;	//Reset the checksum in the structure.
+		IP_receive_read(&ip_receive_data.data_buf[0], 2);	//Read first 2 bytes.
 		ip_receive_data.state = S2;
 		
 		break;
 		case S2:
 		
-		//Wait for receive complete
-		ip_receive_data.state = S3;
+		if (ETH_check_complete()) ip_receive_data.state = S3;	//Wait for read complete.
 		
 		break;
 		case S3:
 		
-		//Discard packet if wrong version, check checksum, set header length in structure, move to S4 if IPv4
+		if (IP_receive_hlen_IP_Ver()) ip_receive_data.state = S4;	//If IP version is IPv4 move to next state.
+		else {
+			IP_receive_discard_packet();	//If IP version is not IPv4 discard the packet.
+			ret_val = 0;	//Set the return value to 0.
+		}
 		
 		break;
 		case S4:
 		
-		//Read next 5 bytes
+		IP_receive_read(&ip_receive_data.data_buf[0], 4);	//Read next 4 bytes.
 		ip_receive_data.state = S5;
 		
 		break;
 		case S5:
 		
-		//Wait for receive complete
-		ip_receive_data.state = S6;
+		if (ETH_check_complete()) ip_receive_data.state = S6;	//Wait for read complete.
 		
 		break;
 		case S6:
 		
-		//Read next 4 bytes
+		IP_receive_data_len();	//Store data length in the IP Receive structure.
 		ip_receive_data.state = S7;
 		
 		break;
 		case S7:
 		
-		//Wait for receive complete
+		IP_receive_read(&ip_receive_data.data_buf[0], 4);	//Read next 4 bytes.
 		ip_receive_data.state = S8;
 		
 		break;
 		case S8:
 		
-		//Calculate data size, extract total length, extract protocol, discard packet if fragment flag is set, otherwise move to S9
+		if (ETH_check_complete()) ip_receive_data.state = S9;	//Wait for read complete.
 		
 		break;
 		case S9:
 		
-		//Read next 6 bytes
-		ip_receive_data.state = S10;
+		if (IP_receive_proto_frag()) ip_receive_data.state = S10;	//If packet is not fragmented move to next state.
+		else {
+			IP_receive_discard_packet();	//If packet is fragmented discard the packet.
+			ret_val = 0;	//Set the return value to 0.
+		}
 		
 		break;
 		case S10:
 		
-		//Wait for receive complete
+		IP_receive_read(&ip_receive_data.data_buf[0], 6);	//Read next 6 bytes.
 		ip_receive_data.state = S11;
 		
 		break;
 		case S11:
 		
-		//Extract source IP
-		ip_receive_data.state = S12;
+		if (ETH_check_complete()) ip_receive_data.state = S12;	//Wait for read complete.
 		
 		break;
 		case S12:
 		
-		//Read next 4 bytes
+		IP_receive_read_source_IP();	//Store the source IP in the IP Receive structure.
 		ip_receive_data.state = S13;
 		
 		break;
 		case S13:
 		
-		//Wait for receive complete
+		IP_receive_read(&ip_receive_data.data_buf[0], 4);	//Read next 4 bytes.
 		ip_receive_data.state = S14;
 		
 		break;
 		case S14:
 		
-		//Extract destination IP
-		ip_receive_data.state = S15;
+		if (ETH_check_complete()) ip_receive_data.state = S15;	//Wait for read complete.
 		
 		break;
 		case S15:
 		
-		//Read next 4 bytes
+		IP_receive_read_destination_IP();	//Store the destination IP in the IP Receive structure.
 		ip_receive_data.state = S16;
-		
-		break;
-		case S16:
-		
-		//Wait for receive complete
-		ip_receive_data.state = S17;
 		
 		break;
 		case S17:
 		
-		//Check options
-		ip_receive_data.state = Complete;
+		if (ip_receive_data.hlen > 5) ip_receive_data.state = S18;	//If there are options go to state 18.
+		else ip_receive_data.state = S20;	//If there are no options move to S20.
 		
 		break;
-		case Complete:	//S18 or Complete
+		case S18:
 		
-		//Discard if bad checksum, otherwise go back to idle
+		IP_receive_read(&ip_receive_data.data_buf[0], 4);	//Read next 4 bytes.
+		ip_receive_data.state = S19;
+		
+		break;
+		case S19:
+		
+		if (ETH_check_complete()) ip_receive_data.state = S20;	//Wait for read complete.
+		
+		break;
+		case S20:
+		
+		if (IP_receive_check_CRC()) ip_receive_data.state = Complete;	//If the CRC was correct move to the Complete state.
+		else {
+			IP_receive_discard_packet();	//If the CRC was not correct discard the packet.
+			ret_val = 0;	//Set the return value to 0.
+		}
+		
+		break;
+		case Complete:
+		
+		//Wait for release.
 			
 		break;
-		default:	//Should never be here
+		default:
 		
-		ip_receive_data.state = Idle;
+		ip_receive_data.state = Idle;	//If state is corrupted return to Idle state.
 			
 		break;
-	}
-	return ret_val;
-}
-
-uint8_t ip_receive_request_attach(void)
-{
-	uint8_t ret_val = 0;
-	if (ip_receive_data.state == Idle) {
-		ip_receive_data.state = Attached;
-		ret_val = 1;
-		
-	}
-	return ret_val;
-}
-
-uint8_t ip_receive_release(void)
-{
-	uint8_t ret_val = 0;
-	if (ip_receive_data.state == Complete)
-	{
-		ip_receive_data.state = Idle;
-		ret_val = 1;
 	}
 	return ret_val;
 }
 
 /**
-* IP_Receive_Proto_Type
-* \brief Reads the protocol type from the IP header and returns it.
-* 
-* Reads the protocol type from the 10th byte in the IP header and returns it.  Must pass
-* a pointer to the current IP header being read in order to use this function.
-* 
-* \parameter data Pointer to the current IP header being read.
-* 
-* Returns the protocol type.
-**/
-//uint8_t IP_Receive_Proto_Type (uint8_t *data)
-void IP_Receive_Proto_Type (uint8_t *data)
-{
-	data = data + 9;			//Go to 10th byte in IP header which is the protocol field.
-	ip_receive_data.proto = *data;			//Set protocol is IP Receive Structure
-	//uint8_t proto = *data;			//Set proto to value in protocol field.
-	//return proto;			//Return proto.
-}
-
-uint8_t IP_Receive_Update_CRC (uint8_t *data)
-{	
-	uint16_t x = IP_send_hdr_crc((uint16_t*)data, ip_receive_data.hlen);
-	if (x == 0x0000)
-	{
+* IP_receive_request_attach
+* \brief Requests to change state to Attached.
+*
+* Checks the current state of the IP Receive system and changes the state
+* to attached if it is currently idle.  If changing state is not successfully
+* this function will return 0, likewise it will return 1 if it was successfully.
+*
+* Returns 0 on fail, 1 on success.
+ **/
+uint8_t IP_receive_request_attach(void) {
+	if (ip_receive_data.state == Idle) {	//If in the Idle state change to the Attached state and return 1.
+		ip_receive_data.state = S1;
 		return 1;
 	}
-	else return 0;
+	else return 0;	//If unsuccessful return 0.
 }
 
-void IP_Receive_Check_Options (uint8_t *data)
-{
-	
+/**
+* IP_receive_release
+* \brief Requests to change state to Idle.
+*
+* Checks the current state of the IP Receive system and changes the state
+* to attached if it is currently idle.  If changing state is not successfully
+* this function will return 0, likewise it will return 1 if it was successfully.
+*
+* Returns 0 on fail, 1 on success.
+ **/
+uint8_t IP_receive_release(void) {	//If in the Complete state change to the Idle state and return 1.
+	if (ip_receive_data.state == Complete) {
+		ip_receive_data.state = Idle;
+		return 1;
+	}
+	else return 0;	//If unsuccessful return 0.
 }
-
-void IP_Receive_Read_Source_IP (uint8_t *data)
-{
-	data = data+12;
-	for (uint8_t i = 0; i < 4; i++)
-	{
-		ip_receive_data.IP_source[i] = *data;
-		data++;
+/**
+* IP_receive_read
+* \brief Reads a specified number of bytes and places them in the data buffer.
+* 
+* Reads a specified number of bytes and places the data read in the data buffer.  Every
+* time data is read the checksum in the IP Receive structure is updated.  Data must always
+* be read in multiples of 2 bytes to ensure the checksum is correct once the whole header
+* is read.  This function returns the amount of bytes that were able to be read.
+* 
+* Returns the number of bytes that were read.
+ **/
+uint8_t IP_receive_read(uint8_t *data, uint8_t len) {
+	uint8_t bytes_read = ETH_receive_read_data(data, len);	//Read data and store it in the data buffer.
+	uint16_t next;
+	for (uint8_t bytes_added = 0;bytes_added < bytes_read;bytes_added += 2) {	//Add the read data to the checksum in the IP Receive structure.
+		next = (uint16_t) (ip_receive_data.data_buf[bytes_added] << 8) | (uint16_t) (ip_receive_data.data_buf[bytes_added + 1]);
+		ip_receive_data.chk_sum += next;	//Add the next 16 bits.
+		if (ip_receive_data.chk_sum < next) ip_receive_data.chk_sum++;	//If there was an overflow increment the checksum.
+	}
+	return bytes_read;	//Return the number of bytes that were read.
+}
+/**
+* IP_receive_discard_packet
+* \brief 
+* 
+* 
+ **/
+void IP_receive_discard_packet(void) {
+	ip_receive_data.state = Idle;
+}
+/**
+* IP_receive_hlen_IP_Ver
+* \brief Checks the IP version and the header length.
+* 
+* Reads the IP version and the header length and stores them both in the IP Receive
+* structure.  Returns a 1 if the packet is IPv4 and returns a 0 if the packet is not
+* IPv4.
+* 
+* Returns a 1 if the version is IPv4, returns a 0 if it is not.
+ **/
+uint8_t IP_receive_hlen_IP_Ver(void) {
+	if ((ip_receive_data.data_buf[0] & IP_VER) == IP_VER_4) {	//If IP is version 4 store the version and the header length in the structure and return 1.
+		ip_receive_data.ver = ip_receive_data.data_buf[0] & IP_VER;
+		ip_receive_data.proto = ip_receive_data.data_buf[0] & HLEN;
+		return 1;
+	}
+	else return 0;	//If IP is not version 4 return 0.
+}
+/**
+* IP_receive_data_len
+* \brief Stores the data length in the structure.
+* 
+* Stores the length of the data in the IP Receive structure.
+ **/
+void IP_receive_data_len(void) {
+	ip_receive_data.dlen = (uint16_t) (ip_receive_data.data_buf[0] << 8) | (uint16_t) (ip_receive_data.data_buf[1]);	//Store data length in the structure.
+}
+/**
+* IP_receive_proto_frag
+* \brief Checks if the packet is fragmented and stores the protocol in the structure.
+* 
+* Checks whether or not the packet is fragmented.  If the packet is fragments this function
+* will return a 0.  If the packet is not fragmented this function will store the protocol in
+* the IP Receive structure and return a 1.
+* 
+* Returns a 1 if the packet is not fragmented and a 0 if it is.
+**/
+uint8_t IP_receive_proto_frag(void) {
+	uint8_t more_frags = ip_receive_data.data_buf[0] & MORE_FRAGS;	//Store the More Fragments flag.
+	uint16_t frag_off = (uint16_t) ((ip_receive_data.data_buf[0] & FRAG_OFF) << 8) | (uint16_t) (ip_receive_data.data_buf[1]);	//Store the Fragment Offset.
+	if (more_frags || frag_off) return 0;	//If the more fragments flag is set or if there is a fragment offset return a 0.
+	else {
+		ip_receive_data.proto = ip_receive_data.data_buf[3];	//Set protocol in the IP Receive Structure.
+		return 1;
 	}
 }
-
-void IP_Receive_Read_Destination_IP (uint8_t *data)
-{
-	data = data+16;
-	for (uint8_t i = 0; i < 4; i++)
-	{
-		ip_receive_data.IP_destination[i] = *data;
-		data++;
+/**
+* IP_receive_read_source_IP
+* \brief Reads the source IP and stores it in the structure.
+* 
+* Read the source IP address and stores it in the IP Receive structure.
+ **/
+void IP_receive_read_source_IP(void) {
+	for (uint8_t len = 0;len < IP_LEN;len++) {	//Store the source IP in the structure.
+		ip_receive_data.IP_source[len] = ip_receive_data.data_buf[len + 2];
 	}
 }
-
-uint8_t IP_Receive_Check_Fragment (uint8_t *data)
-{
-	uint8_t is_frag = 0;
-	
-	uint16_t temp = (((uint16_t) (*data))& 0x1FFF); 
-	
-	if((temp!=0x0000)||(*data&0x20)) //check if temp (frag offset) is not 0 OR "more fragments flag" is not 0
-	{
-		is_frag=1;
+/**
+* IP_receive_read_destination_IP
+* \brief Reads the destination IP and stores it in the structure.
+* 
+* Read the destination IP address and stores it in the IP Receive structure.
+ **/
+void IP_receive_read_destination_IP(void) {
+	for (uint8_t len = 0;len < IP_LEN;len++) {	//Store the destination IP in the structure.
+		ip_receive_data.IP_source[len] = ip_receive_data.data_buf[len];
 	}
-	
-	return is_frag;
 }
-
-void IP_Receive_DataSize_ExtLength (uint8_t *data)
-{
-	data = data+2;
-	ip_receive_data.IP_datasize[0] = *data;
-	data++;
-	ip_receive_data.IP_datasize[1] = *data;
-	
-	data = data+3;
-	IP_Receive_Check_Fragment (data);
-	IP_Receive_Proto_Type (data);
+/**
+* IP_receive_check_CRC
+* \brief Checks whether or not the CRC was correct.
+* 
+* Takes the ones compliment of the sum in the IP Receive data structure to check whether or
+* not the CRC in the IP header was correct.  If it was correct this function will return a 1.
+* If the CRC in the header was not correct this function will return a 0.
+* 
+* Returns 1 if the CRC was correct and returns 0 if it was not.
+ **/
+uint8_t IP_receive_check_CRC(void) {
+	ip_receive_data.chk_sum = ~ip_receive_data.chk_sum;	//Take ones compliment of the sum.
+	if (ip_receive_data.chk_sum) return 0;	//If the checksum is not 0 return a 0.
+	else return 1;	//If the checksum is 0 return a 1.
 }
-
-uint8_t IP_Receive_Read_Bytes (uint8_t *data, uint8_t len)
-{
-	return ETH_receive_read_data(len, data);
-}
-
-void IP_Receive_Discard_Packet (void)
-{
-	//Code Here
-}
-
-void IP_Receive_CRC_Hlen_ReadIPVersion (uint8_t *data)
-{
-	ip_receive_data.hlen=(*data)>>4;
-	ip_receive_data.ver1=(*data)&0x0F;
-}
-

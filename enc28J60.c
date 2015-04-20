@@ -5,11 +5,11 @@
  *  Author: John
  */ 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include "SPI.h"
 #include "enc28J60.h"
 #include "Timer.h"
-#include <avr/pgmspace.h>
 
 void ENC28J60_MAC_Init(void); 	//creates initialization function
 void ENC28J60_ETHERNET_Init(void);
@@ -22,10 +22,6 @@ typedef enum  {idle, ready_to_send, S2A, S2B, S2C, S2D, S3, release_pkt_A, relea
 	write_pointer, write_pointer_A, write_pointer_B, write_pointer_C, write_pointer_D, write_pointer_E, 
 	write_pointer_F, write_pointer_G,  
 	complete} enc28j60_comm_states;
-//defines for the flags
-// set this if the register is a 2 byte read reg. Otherwise clear it for a 3 byte register read (MAC and MII & PHY regs)
-#define TWO_BYTE_REG_READ 0x80
-#define ENC28J60_BUF_SIZE 10;
 
 typedef struct
 {
@@ -33,13 +29,9 @@ typedef struct
 	uint8_t flags; 
 	uint16_t nxt_pkt_addr; // holds the next packet address in the enc28J60
 	uint8_t buffer[8]; // general buffer
-}
-enc28j60_comm_struct;
+}enc28j60_comm_struct;
 
 enc28j60_comm_struct enc28j60_comm_data; // global variable for the enc28j60 communication data 
-
- 
-
 
 uint8_t ENC28J60_comm_run_state(void)
 {
