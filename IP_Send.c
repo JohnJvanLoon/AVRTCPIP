@@ -19,7 +19,7 @@ typedef struct
 	IP_send_comm_states state;
 }IP_send_comm_struct;
 
-volatile IP_send_comm_struct IP_send_comm_data; // global variable for the IP send communication data 
+IP_send_comm_struct IP_send_comm_data; // global variable for the IP send communication data 
 
 
 /********************************************************************//**

@@ -35,7 +35,7 @@ typedef struct
 	//uint8_t data[10];
 }ETH_Receive_comm_struct;
 
-volatile ETH_Receive_comm_struct ETH_receive_data;
+ETH_Receive_comm_struct ETH_receive_data;
 /**************************************************************************************************//**
 * ETH_receive_run_state
 * Allows packets to be received as per state diagram
