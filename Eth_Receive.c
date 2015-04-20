@@ -227,3 +227,7 @@ uint8_t ETH_receive_read_data(uint8_t * data, uint8_t len)
 {
 	return ENC28J60_read_data(len, data);
 }
+
+uint8_t ETH_check_complete(void) {
+	return ENC28J60_check_complete();
+}

@@ -9,7 +9,7 @@
 #include "IP_Receive.h"
 #include "Eth_Receive.h"
 
-typedef enum {Idle, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, Complete} ip_receive_states_t;
+typedef enum {Idle, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, Complete} ip_receive_states_t;
 
 typedef struct {
 	ip_receive_states_t state;
@@ -23,13 +23,18 @@ typedef struct {
 	uint8_t data_buf[DATA_BUF_SIZE];
 }ip_recieve_struct_t;	
 
-volatile ip_recieve_struct_t ip_receive_data;
+ip_recieve_struct_t ip_receive_data;
 
 /**
- * IP_receive_run_states
+ * Case structure for the IP Receive system.
  * 
- * Totally incomplete, I've only written in the framework and commented on each state to describe what it should be doing.
+ * Starts off in the Idle state and stays there until an attach is requested.  When the states
+ * run they will extract important information from the IP header and store them in a structure.
+ * If there is a problem of if a packet must be discarded the function will return a 0 and move to
+ * the complete state.  When in the Complete state a Release must be requested before the state is
+ * changed back to Idle.
  * 
+ * Returns 1 if there were no problems, or 0 if there was a problem.
 **/
 uint8_t IP_receive_run_states(void) {
 	uint8_t ret_val = 1;
@@ -48,8 +53,7 @@ uint8_t IP_receive_run_states(void) {
 		break;
 		case S2:
 		
-		//Wait for read
-		ip_receive_data.state = S3;
+		if (ETH_check_complete()) ip_receive_data.state = S3;	//Wait for read complete.
 		
 		break;
 		case S3:
@@ -69,8 +73,7 @@ uint8_t IP_receive_run_states(void) {
 		break;
 		case S5:
 		
-		//Wait for read
-		ip_receive_data.state = S6;
+		if (ETH_check_complete()) ip_receive_data.state = S6;	//Wait for read complete.
 		
 		break;
 		case S6:
@@ -87,8 +90,7 @@ uint8_t IP_receive_run_states(void) {
 		break;
 		case S8:
 		
-		//Wait for read
-		ip_receive_data.state = S9;
+		if (ETH_check_complete()) ip_receive_data.state = S9;	//Wait for read complete.
 		
 		break;
 		case S9:
@@ -108,8 +110,7 @@ uint8_t IP_receive_run_states(void) {
 		break;
 		case S11:
 		
-		//Wait for read
-		ip_receive_data.state = S12;
+		if (ETH_check_complete()) ip_receive_data.state = S12;	//Wait for read complete.
 		
 		break;
 		case S12:
@@ -126,8 +127,7 @@ uint8_t IP_receive_run_states(void) {
 		break;
 		case S14:
 		
-		//Wait for read
-		ip_receive_data.state = S15;
+		if (ETH_check_complete()) ip_receive_data.state = S15;	//Wait for read complete.
 		
 		break;
 		case S15:
@@ -138,20 +138,22 @@ uint8_t IP_receive_run_states(void) {
 		break;
 		case S17:
 		
-		if (ip_receive_data.hlen > 5) {	//If there are options read them.
-			IP_receive_read(&ip_receive_data.data_buf[0], 4);
-			ip_receive_data.state = S18;
-		}
-		else ip_receive_data.state = S19;	//If there are no options move to S19.
+		if (ip_receive_data.hlen > 5) ip_receive_data.state = S18;	//If there are options go to state 18.
+		else ip_receive_data.state = S20;	//If there are no options move to S20.
 		
 		break;
 		case S18:
 		
-		//Wait for read
+		IP_receive_read(&ip_receive_data.data_buf[0], 4);	//Read next 4 bytes.
 		ip_receive_data.state = S19;
 		
 		break;
 		case S19:
+		
+		if (ETH_check_complete()) ip_receive_data.state = S20;	//Wait for read complete.
+		
+		break;
+		case S20:
 		
 		if (IP_receive_check_CRC()) ip_receive_data.state = Complete;	//If the CRC was correct move to the Complete state.
 		else {
@@ -186,7 +188,7 @@ uint8_t IP_receive_run_states(void) {
  **/
 uint8_t IP_receive_request_attach(void) {
 	if (ip_receive_data.state == Idle) {	//If in the Idle state change to the Attached state and return 1.
-		ip_receive_data.state = Attached;
+		ip_receive_data.state = S1;
 		return 1;
 	}
 	else return 0;	//If unsuccessful return 0.
